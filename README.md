@@ -1,6 +1,6 @@
 Zephyr version v2.5.1 or v2.5.3
 
-Author: @LuckyMan23129
+Author: [@LuckyMan23129](https://github.com/LuckyMan23129)
 
 
 GUIDE
