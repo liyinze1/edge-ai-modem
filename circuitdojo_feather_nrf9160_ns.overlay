@@ -1,0 +1,87 @@
+
+/*
+ * Copyright (c) 2020 Circuit Dojo LLC
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+// Start- *************************** Overlay File for Digital Switches - S3 **************************
+/{  
+    Vu_Output_Pin1{
+		compatible = "gpio-leds";
+        label = "Output Pin to wake up RoadRunner";
+		D_OP1: outputpin1 {
+			// gpios = <&gpio0 4 (GPIO_PULL_DOWN | GPIO_ACTIVE_HIGH)>;
+            gpios = <&gpio0 14 (GPIO_PULL_UP | GPIO_ACTIVE_HIGH)>;
+			label = "Output Pin to wake up RoadRunner";
+		};
+    };
+    
+    aliases {
+        op1 = &D_OP1;
+    };
+};
+// End- *************************** Overlay File for Digital Switches - S3 **************************
+
+
+
+
+//*************************** Serial Interface - S **************************
+&uart2 {
+    status = "okay";
+    current-speed = <230400>;
+    label = "Serial Interface between Flute and RoadRunner";
+};
+
+
+/{
+    zephyr,user {
+        wakein-gpios = <&gpio0 22 GPIO_ACTIVE_HIGH>;
+    };
+};
+// *************************** Serial Interface - E *************************
+
+
+
+
+
+
+// =========================================================================================================
+// Start - ******************** Overlay file for Ultra Low power for Circuit Dojo ********************
+/{
+    zephyr,user {
+        latch-en-gpios = <&gpio0 31 GPIO_ACTIVE_HIGH>;
+        wp-gpios = < &gpio0 8 GPIO_ACTIVE_LOW >;
+        hold-gpios = < &gpio0 10 GPIO_ACTIVE_LOW >;
+    };
+
+    leds {
+        compatible = "gpio-leds";
+        blue_led: led_0 {
+            gpios = <&gpio0 3 GPIO_ACTIVE_HIGH>;
+            label = "Blue LED (D7)";
+        };
+    };
+};
+    
+&gpio0 {
+    sense-edge-mask = <0xffff>;
+};
+
+&i2c1 {
+    lis2dh@18 {
+        compatible = "st,lis2dh";
+        reg = <0x18>;
+        disconnect-sdo-sa0-pull-up;
+    };
+};
+    
+&spi3 {
+    w25q32jv: w25q32jv@0 {
+        /delete-property/ wp-gpios;
+        /delete-property/ hold-gpios;
+        t-enter-dpd = < 3500 >;
+        t-exit-dpd = < 3500 >;
+    };
+};
+// Stop - ******************** Overlay file for Ultra Low power for Circuit Dojo ********************

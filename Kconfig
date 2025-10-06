@@ -1,0 +1,28 @@
+# Start- *********************** Kconfig for LTE-M/NB-IoT (AsTAR++) *************************** 
+menu "UDP Sample Settings"
+
+config UDP_SERVER_ADDRESS_STATIC
+	string "UDP server IP address"
+	default "103.77.123.123"	
+
+config UDP_SERVER_PORT
+	int "UDP server port number"
+	default "7011"
+
+config UDP_PSM_ENABLE
+	bool "Enable LTE Power Saving Mode"
+	default y
+
+config UDP_EDRX_ENABLE
+	bool "Enable LTE enhanced Discontinuous Reception"
+	default n
+endmenu
+
+module = UDP
+module-str = UDP sample
+source "${ZEPHYR_BASE}/subsys/logging/Kconfig.template.log_config"
+
+menu "Zephyr Kernel"
+source "Kconfig.zephyr"
+endmenu
+# Stop- *********************** Kconfig for LTE-M/NB-IoT (AsTAR++) *************************** 
