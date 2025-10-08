@@ -98,8 +98,6 @@ void uart_send_cmd_suspendRAM(void) {
     }
 }
 
-
-
 /**
  *  Tells the RR “Please fall into power-down mode” 
  * 
@@ -136,7 +134,7 @@ void uart_process_rx(void) {
             
             //-----------------------------------------------------------------------------------------------------
             // if received bytes: C  00 02 xx xx  [0x11 0x22 0x33 0x44 0x55]
-            //      + 'C' = Control packet
+            //      + 'D' = Depth packet
             //      +  00 05 = 5 bytes payload length predeclared on RR
             //      +  Payload = [0x11, 0x22, 0x33, 0x44, 0x55]
             //-----------------------------------------------------------------------------------------------------
@@ -157,9 +155,30 @@ void uart_process_rx(void) {
                 
                 waterlevel_tx = (waterLevel_tx_buf[0] << 8) | waterLevel_tx_buf[1];
                 LOG_INF("Water level is %d (cm)", waterlevel_tx);
-                // k_sem_give(&uart_process_rx_done);          // Finished processing UARt data
+
+                // to-do: send data to server
 
                 break;
+
+            case 'P':
+                LOG_INF("Received Picture from RR");
+                payload_len_predec =  (uart_rx_buf[(uart_rx_offset + 1) % sizeof(uart_rx_buf)] << 8) | uart_rx_buf[(uart_rx_offset + 2) % sizeof(uart_rx_buf)];
+                if (payload_len_predec != uart_rx_len - 3) {
+                    LOG_ERR("Message specified length %u doesn't match rx'd %u", payload_len_predec, uart_rx_len - 3);
+                    // uart_send_nack();
+                    break;
+                }
+                uart_send_ack();
+
+                // to-do: send data to server
+
+                break;
+
+            case 'E':
+                LOG_INF("Received end message from RR");
+                k_sem_give(&uart_process_rx_done);    // Finished processing UART data
+                break;
+
             default:
                 LOG_ERR("Received unknown message type");
                 // uart_send_nack();

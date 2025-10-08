@@ -54,8 +54,6 @@ int main(void)
   // Init modem - power off modem for saving enegy
 	nrf_modem_lib_init();
 	lte_lc_init();
-
-  uart_init();
   
 	// GPIO init for Waking up RR
   ret = runner_wakeup_int();
@@ -64,17 +62,18 @@ int main(void)
 		exit(1);
 	}
 
-  // GPIO init for Waking up the nRF
-  ret = nrf_wakeup_init();
-	if(ret){
-		LOG_INF("Fail to retrieving GPIO for waking up nRF from DTs");
-		exit(1);
-	}
+  // GPIO init for Waking up the nRF, not necessary if using UART to wake up the nRF
+//   ret = nrf_wakeup_init();
+// 	if(ret){
+// 		LOG_INF("Fail to retrieving GPIO for waking up nRF from DTs");
+// 		exit(1);
+// 	}
 
-  LOG_INF("Please wait 30 seconds for the RR to boot ...");
-  k_sleep(K_MSEC(30000));          // Wait for the RR to finish its first booting
+//   LOG_INF("Please wait 30 seconds for the RR to boot ...");
+//   k_sleep(K_MSEC(30000));          // Wait for the RR to finish its first booting
   LOG_INF("Wake up RR to start working");
   runner_set_wakeup();           // Wake RoadRunner up
+  uart_init();
   
   while (1)
   {
@@ -99,8 +98,6 @@ int main(void)
     k_sem_take(&uart_process_rx_done, K_FOREVER);   // MCU automatically falls into sleep during the interval waiting for "k_sem_give(&uart_process_rx_done)" being called
     
     // Todo: retrieve Water level to send to the server
-    uint16_t water_level = waterlevel_tx;
-    LOG_INF("Sucessfully retrieve water level into main(): %d (cm)", water_level);
 
     // Todo: AsTAR++ scheduler here
     LOG_INF("Run AsTAR++");
