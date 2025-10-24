@@ -1,10 +1,9 @@
 /*
- * Copyright (c) 2016 Intel Corporation
- *
- * SPDX-License-Identifier: Apache-2.0
+ * @brief: Used to wake the RR by pull its wake-up pin down 
  */
 
 #include "roadrunner_wakeup.h"
+
 int8_t ret_SW;
 
 #define D_OP1 DT_ALIAS(op1)

@@ -5,11 +5,10 @@ static const struct device *uart2_dev = DEVICE_DT_GET(DT_NODELABEL(uart2));
 LOG_MODULE_REGISTER(UART_interface);
 
 // static volatile uint8_t uart_rx_buf[65535];
-static uint8_t uart_rx_buf[100];
 
 // Shared counters, volatile since ISR + thread both access them
-static volatile uint16_t uart_rx_len;
-static volatile uint16_t uart_rx_offset;
+// static volatile uint16_t uart_rx_len;
+// static volatile uint16_t uart_rx_offset;
 
 K_SEM_DEFINE(uart_data_ready, 0, 1);          // RX Data is received well 
 K_SEM_DEFINE(uart_process_rx_done, 0, 1);     // Finished processing UART RX data
@@ -30,8 +29,8 @@ static void uart_cb(const struct device *dev, struct uart_event *evt,
         case UART_RX_RDY:
             uart_rx_len = evt->data.rx.len;
             uart_rx_offset = evt->data.rx.offset;
-            uart_rx_disable(uart2_dev);                 //  Received enough bytes => stop listening for new incoming data
-			k_sem_give(&uart_data_ready);
+            uart_rx_disable(uart2_dev);                 // Received enough bytes => stop listening for new incoming data
+			k_sem_give(&uart_data_ready);               // Allow the <uart_process_rx()> to be executed to handle incoming data in another Functions
             break;
 
         case UART_RX_BUF_REQUEST:
@@ -55,6 +54,7 @@ static void uart_cb(const struct device *dev, struct uart_event *evt,
             break;
     }
 }
+
 
 
 void uart_init(void) {
@@ -89,7 +89,6 @@ void uart_send_ready(void) {
 
 /**
  *  Tells the RR “Please fall into suspend-to-RAM mode” 
- * 
  */
 void uart_send_cmd_suspendRAM(void) {
     static const uint8_t tx_char = 'S';
@@ -100,7 +99,6 @@ void uart_send_cmd_suspendRAM(void) {
 
 /**
  *  Tells the RR “Please fall into power-down mode” 
- * 
  */
 void uart_send_cmd_powerdown(void) {
     static const uint8_t tx_char = 'P';
@@ -108,7 +106,6 @@ void uart_send_cmd_powerdown(void) {
         LOG_ERR("Couldn't send power-down command");
     }
 }
-
 
 
 void uart_send_ack(void) {
@@ -133,7 +130,7 @@ void uart_process_rx(void) {
         switch (uart_rx_buf[(uart_rx_offset + 0) % sizeof(uart_rx_buf)]) {
             
             //-----------------------------------------------------------------------------------------------------
-            // if received bytes: C  00 02 xx xx  [0x11 0x22 0x33 0x44 0x55]
+            // if received bytes: D  00 02 xx xx  [0x11 0x22 0x33 0x44 0x55]
             //      + 'D' = Depth packet
             //      +  00 05 = 5 bytes payload length predeclared on RR
             //      +  Payload = [0x11, 0x22, 0x33, 0x44, 0x55]
@@ -176,7 +173,7 @@ void uart_process_rx(void) {
 
             case 'E':
                 LOG_INF("Received end message from RR");
-                k_sem_give(&uart_process_rx_done);    // Finished processing UART data
+                k_sem_give(&uart_process_rx_done);              // Finished processing UART data
                 break;
 
             default:
@@ -186,6 +183,42 @@ void uart_process_rx(void) {
         }
     }
 }
+
+
+
+
+// ---------------------------------------- S- Send Data to Cloud ------------------------------------
+/**
+ * How can the server distinguish between Depth, Picture or AsTAR Data type?
+ * Do we need to spilit the whole picture data into small chunks? 
+ */
+
+void send_astar_params(void)
+{
+
+}
+
+
+void send_depth(void)
+{
+    
+}
+
+
+void Send_picture(void)
+{
+    
+}
+
+
+// ---------------------------------------- E- Send Data to Cloud ------------------------------------
+
+
+
+
+
+
+
 
 
 

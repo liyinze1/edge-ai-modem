@@ -49,30 +49,32 @@ int main(void)
   LOG_INF("Starting...");
   setup_gpio();			
 	setup_accel();
-	// setup_uart();
+	// setup_uart();      // Suspend UART2
 
   // Init modem - power off modem for saving enegy
 	nrf_modem_lib_init();
 	lte_lc_init();
   
+
 	// GPIO init for Waking up RR
-  ret = runner_wakeup_int();
-	if(ret){
-		LOG_INF("Fail to retrieving GPIO for waking up RoadRunner from DTs");
-		exit(1);
-	}
+  // ret = runner_wakeup_int();
+	// if(ret){
+	// 	LOG_INF("Fail to retrieving GPIO for waking up RoadRunner from DTs");
+	// 	exit(1);
+	// }
 
   // GPIO init for Waking up the nRF, not necessary if using UART to wake up the nRF
-//   ret = nrf_wakeup_init();
-// 	if(ret){
-// 		LOG_INF("Fail to retrieving GPIO for waking up nRF from DTs");
-// 		exit(1);
-// 	}
+  //   ret = nrf_wakeup_init();
+  // 	if(ret){
+  // 		LOG_INF("Fail to retrieving GPIO for waking up nRF from DTs");
+  // 		exit(1);
+  // 	}
 
-//   LOG_INF("Please wait 30 seconds for the RR to boot ...");
-//   k_sleep(K_MSEC(30000));          // Wait for the RR to finish its first booting
+
+  //   LOG_INF("Please wait 30 seconds for the RR to boot ...");
+  //   k_sleep(K_MSEC(30000));          // Wait for the RR to finish its first booting
   LOG_INF("Wake up RR to start working");
-  runner_set_wakeup();           // Wake RoadRunner up
+  runner_set_wakeup();                  // Wake RoadRunner up
   uart_init();
   
   while (1)
@@ -82,15 +84,6 @@ int main(void)
     
     LOG_INF("nRF sleeps until the RR finishes its ML inference and then wake it up by sending UART water level data to it ... \n");
    
-
-    /* ????????????????????????????????? 
-    * Whether or not we use the GPIO interrupt to wakeup the nRF - Actually, when we send water_level data to the nRF => UART ISR fired => nRF is waken up automatically 
-    *
-    * Wait until the RR has finished the ML inference and then Wake the nRF via GPIO interrupt
-    *   The nRF then sends 'A' to the RR to notify: 'I am awake and ready to receive UART data.'
-    */
-
-
     /*
     * The nRF waits until the RR has finished the ML inference and then wake the nRF up 
     *   by sending the water level data via UART to the nRF 
@@ -163,3 +156,21 @@ void thread_uartprocess (void) {
     }
 }
 
+
+
+
+
+/**  --------------------------------------- Take notes -----------------------------------
+ * S1: RR boots and going to sleep mode
+ * S2: nRF Wakes up RR to start working
+ * S3: The nRF waits (sleep during waiting time by "k_sem_take(&uart_process_rx_done, K_FOREVER)") until the RR 
+        has finished the ML inference and then wake the nRF up by sending water_level or Whole_picture data via ASYNC UART to the nRF
+        + First Header Byte: "D"  : Depth data
+        + First Header Byte: "P"  : Send whole picture to the cloud
+        + First Header Byte: "E"  : Tell the nrf that RR has already sent everything (trigger k_sem_give(&uart_process_rx_done); , then in the main.c , it can start to run AStar)
+ * S4: nRF handles incoming data, and then send to the server
+ * S5: nRF run AsTART++ and decide the sleep mode of the RR based on the calculated Sleeping time.
+        + If sleep_time < 1800s:  Send "S" to RR, and then RR going Suspend-to-RAM mode
+        + If sleep_time >= 1800s: Send ""
+ *  
+ */
