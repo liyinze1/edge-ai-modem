@@ -32,7 +32,7 @@ void rsrp_cb(char rsrp_value)
 	printk("The RSRP of the system: %d\n", client_rsrp_val);
 }
 
-// - ------------------- S - Format Data + Send ----------------------
+// - ------------------- Formated Data + Send - S ----------------------
 
 // void modem_transmitData(uint16_t capMilliVolt, uint16_t sleepTime, uint16_t Distance_Data, 
 // 						uint16_t solarV, uint16_t reconnection_times, uint16_t *lidar_reading_buff) {
@@ -63,56 +63,90 @@ void rsrp_cb(char rsrp_value)
 // }
 
 
-/**
- * @brief: To send ONLY "Depth" to the server"
- */
-void modem_transmitData_depth(uint16_t Distance_Data) {
-	memset(txbuf, 0, TX_BUFFER_LEN_DEPTH);
-	// IMEI often have 15 digits (lengths)
-	memcpy(&txbuf[0], client_id_imei, 15);		
-	txbuf[15] = (Distance_Data >> 8) & 0xFFu;
-	txbuf[16] = Distance_Data & 0xFFu;
 
-	txbuf_len = TX_BUFFER_LEN_DEPTH;
-    modem_server_transmission_work_fn(NULL);
+/**
+ * @brief: To send "Start" Byte/Header to the server
+ * 			+ Header Byte = 0
+ */
+void modem_transmitData_startByte(void) {
+	memset(txbuf, 0, sizeof(txbuf));
+	txbuf[0] = 0;
+	txbuf_len = 1;	
+	modem_server_transmission_work_fn(NULL);
 }
 
+
 /**
- * @bried: To send "Depth" + "AsTAR++ parameters to the server
+ * @bried: To send "IMEI + AsTAR++ parameters" to the server
+ * 			+ Header Byte: = 1
  */
-void modem_transmitData_depth_astar(uint16_t capMilliVolt, uint16_t sleepTime, uint16_t Distance_Data, 
+void modem_transmitData_astar(uint16_t capMilliVolt, uint16_t sleepTime, 
 						uint16_t solarV, uint16_t reconnection_times) {
 	memset(txbuf, 0, TX_BUFFER_LEN_DEPTH_ASTAR);
+	txbuf[0] = 1;		// Header Byte
 	// IMEI often have 15 digits (lengths)
-	memcpy(&txbuf[0], client_id_imei, 15);		
-	txbuf[15] = (capMilliVolt >> 8) & 0xFFu;
-	txbuf[16] = capMilliVolt & 0xFFu;
-	txbuf[17] = (sleepTime >> 8) & 0xFFu;
-	txbuf[18] = sleepTime & 0xFFu;
-	txbuf[19] = (Distance_Data >> 8) & 0xFFu;
-	txbuf[20] = Distance_Data & 0xFFu;
-	txbuf[21] = (solarV >> 8) & 0xFFu;
-	txbuf[22] = solarV & 0xFFu;
-	txbuf[23] = (reconnection_times >> 8) & 0xFFu;
-	txbuf[24] = reconnection_times & 0xFFu;
+	memcpy(&txbuf[1], client_id_imei, 15);		
+	txbuf[16] = (capMilliVolt >> 8) & 0xFFu;
+	txbuf[17] = capMilliVolt & 0xFFu;
+	txbuf[18] = (sleepTime >> 8) & 0xFFu;
+	txbuf[19] = sleepTime & 0xFFu;
+	txbuf[20] = (solarV >> 8) & 0xFFu;
+	txbuf[21] = solarV & 0xFFu;
+	txbuf[22] = (reconnection_times >> 8) & 0xFFu;
+	txbuf[23] = reconnection_times & 0xFFu;
 
 	txbuf_len = TX_BUFFER_LEN_DEPTH_ASTAR;
     modem_server_transmission_work_fn(NULL);
 }
 
+
+
 /**
- * @brief: To send the whole picture to the server
+ * @brief: To send Depth/Distance to the server
+ * 			+ Header Byte = 2
  */
-void modem_transmitData_picture( uint16_t *modem_tx_buf) {
+
+void modem_transmitData_depth(volatile uint8_t *modem_tx_buf) {
 	memset(txbuf, 0, sizeof(txbuf));
+	txbuf[0] = 2;		// Header Byte
 	// "modem_tx_len": obtained in UART callback
-	txbuf_len = uart_rx_len;				
-	for (uint16_t i = 0; i < txbuf_len; i++)
+	txbuf_len = uart_rx_len - 3;				
+	for (uint16_t i = 1; i <= txbuf_len; i++)
 	{
-		txbuf[i] =  modem_tx_buf[i];
+		txbuf[i] =  modem_tx_buf[i+3];		// Ignore 03 first header Bytes 
 	}
 	modem_server_transmission_work_fn(NULL);
 }
+
+
+/**
+ * @brief: To send the whole picture to the server
+ * 			+ Header Byte = 3
+ */
+void modem_transmitData_picture(volatile uint8_t *modem_tx_buf) {
+	memset(txbuf, 0, sizeof(txbuf));
+	txbuf[0] = 3;		// Header Byte
+	// "modem_tx_len": obtained in UART callback
+	txbuf_len = uart_rx_len - 3;				
+	for (uint16_t i = 1; i <= txbuf_len; i++)
+	{
+		txbuf[i] =  modem_tx_buf[i+3];		// Ignore 03 first header Bytes
+	}
+	modem_server_transmission_work_fn(NULL);
+}
+
+
+/**
+ * @brief: To send "Stop" Byte/Header to the server
+ * 			+ Header Byte = 4
+ */
+void modem_transmitData_stopByte(void) {
+	memset(txbuf, 0, sizeof(txbuf));
+	txbuf[0] = 4;
+	txbuf_len = 1;	
+	modem_server_transmission_work_fn(NULL);
+}
+
 
 void modem_server_transmission_work_fn(struct k_work *work)
 {
@@ -138,7 +172,8 @@ void modem_server_transmission_work_fn(struct k_work *work)
 		printk("Successfully transmitted UDP packet\n");
 	}
 }
-// --------------------- E - Format Data + Send ----------------------
+// --------------------- Formated Data + Send - E ----------------------
+
 
 /**
  * @brief: This function is used for initialize the Modem, NOT FOR UDP.

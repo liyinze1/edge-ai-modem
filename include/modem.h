@@ -10,15 +10,12 @@
 #include <nrf_modem_at.h>
 #include <modem/modem_info.h>
 #include <modem/nrf_modem_lib.h>
-#include "i2c_sensor4.h"
 
 
 #define UDP_IP_HEADER_SIZE 28
 #define IMEI_LEN        15
 #define PICTURE_LEN     
-#define TX_BUFFER_LEN_DEPTH         (IMEI_LEN + 2)
-#define TX_BUFFER_LEN_DEPTH_ASTAR   (IMEI_LEN + 10)
-// #define TX_BUFFER_LEN_PICTURE   (IMEI_LEN + 100)
+#define TX_BUFFER_LEN_DEPTH_ASTAR   (IMEI_LEN + 9)
 
 #define MSGTYPE_INVALID                 0
 #define MSGTYPE_SURVEY_RESULT_UPLOAD    1 
@@ -26,13 +23,17 @@
 #define MSGTYPE_ACK_UPDATEREADY         6 
 
 // ----------------------- S - Preparing data for sending -----------------------
-// To send ONLY "Depth" to the server"
-void modem_transmitData_depth(uint16_t Distance_Data);     
-// To send "Depth" + "ASTAR parameter" to the server
-void modem_transmitData_depth_astar(uint16_t capMilliVolt, uint16_t sleepTime, uint16_t Distance_Data,
+// To send "Start" Byte/Header to the server
+void modem_transmitData_startByte(void);
+// To send "IMEI + AsTAR++ parameters" to the server
+void modem_transmitData_astar(uint16_t capMilliVolt, uint16_t sleepTime, 
 						uint16_t solarV, uint16_t reconnection_times);
-// To send WHOLE PICTURE to the server"
-void modem_transmitData_picture( uint16_t *modem_tx_buf);
+// To send ONLY Depth/Distance to the server						
+void modem_transmitData_depth(volatile uint8_t *modem_tx_buf);
+// To send the whole picture to the server
+void modem_transmitData_picture(volatile uint8_t *modem_tx_buf);
+// To send "Stop" Byte/Header to the server
+void modem_transmitData_stopByte(void);
 // ----------------------- E - Preparing data for sending -----------------------
 
 // Sending data to server

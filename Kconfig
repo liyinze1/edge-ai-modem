@@ -3,7 +3,7 @@ menu "UDP Sample Settings"
 
 config UDP_SERVER_ADDRESS_STATIC
 	string "UDP server IP address"
-	default "103.77.123.123"	
+	default "103.77.166.234"	
 
 config UDP_SERVER_PORT
 	int "UDP server port number"
@@ -25,4 +25,4 @@ source "${ZEPHYR_BASE}/subsys/logging/Kconfig.template.log_config"
 menu "Zephyr Kernel"
 source "Kconfig.zephyr"
 endmenu
-# Stop- *********************** Kconfig for LTE-M/NB-IoT (AsTAR++) *************************** 
+# Stop- *********************** Kconfig for LTE-M/NB-IoT (AsTAR++) ***************************

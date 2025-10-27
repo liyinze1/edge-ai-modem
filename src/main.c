@@ -17,10 +17,12 @@
 #include <zephyr/sys/reboot.h>
 
 // Declare header files
+#include "modem.h"
 #include "lowpower.h"
 #include "roadrunner_wakeup.h"
 #include "serial_interface.h"
 #include "nrf_wakeup.h"
+
 
 LOG_MODULE_REGISTER(main);
 
@@ -52,9 +54,19 @@ int main(void)
 	// setup_uart();      // Suspend UART2
 
   // Init modem - power off modem for saving enegy
-	nrf_modem_lib_init();
-	lte_lc_init();
+	// nrf_modem_lib_init();
+	// lte_lc_init();
   
+  // Initialize + Configurate modem so that it can connect to cellular network
+  // If connection is not successful, wait forever and do nothing "k_sem_take(&lte_connect, k_wait_forever)".
+	modem_main_init();    
+
+  k_sleep(K_SECONDS(1));
+  
+  // Send start up notification (discarded at server)
+  modem_transmitData_astar(0xFFFFu, 0xFFFFu, 0xFFFFu, 0xFFFFu);
+
+
 
 	// GPIO init for Waking up RR
   // ret = runner_wakeup_int();

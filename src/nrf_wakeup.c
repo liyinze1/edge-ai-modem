@@ -23,8 +23,6 @@ void static wakein_cb(const struct device *dev, struct gpio_callback *cb, uint32
 
 
 
-
-
 //===================================================================================================
 int8_t nrf_wakeup_init(void) {
     if (!gpio_is_ready_dt(&dev_wake_in)) {

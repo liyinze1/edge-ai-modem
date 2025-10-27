@@ -1,4 +1,5 @@
 #include "serial_interface.h"
+#include "modem.h"
 
 static const struct device *uart2_dev = DEVICE_DT_GET(DT_NODELABEL(uart2));
 
@@ -143,17 +144,21 @@ void uart_process_rx(void) {
                     // uart_send_nack();
                     break;
                 }
+
                 // Trim message type and length (first 3 bytes)
                 for (size_t i = 0; i < (uart_rx_len - 3); i++) {
                     waterLevel_tx_buf[i] = uart_rx_buf[(uart_rx_offset + i + 3) % sizeof(uart_rx_buf)];
                 }
                 waterLevel_tx_len = uart_rx_len - 3;
                 uart_send_ack();
-                
                 waterlevel_tx = (waterLevel_tx_buf[0] << 8) | waterLevel_tx_buf[1];
                 LOG_INF("Water level is %d (cm)", waterlevel_tx);
 
+
                 // to-do: send data to server
+                modem_transmitData_startByte();
+                modem_transmitData_depth(uart_rx_buf);
+                modem_transmitData_stopByte();
 
                 break;
 
@@ -167,7 +172,10 @@ void uart_process_rx(void) {
                 }
                 uart_send_ack();
 
-                // to-do: send data to server
+                // to-do: send Picture to server
+                modem_transmitData_startByte();
+                modem_transmitData_picture(uart_rx_buf);
+                modem_transmitData_stopByte();
 
                 break;
 
