@@ -169,20 +169,3 @@ void thread_uartprocess (void) {
 }
 
 
-
-
-
-/**  --------------------------------------- Take notes -----------------------------------
- * S1: RR boots and going to sleep mode
- * S2: nRF Wakes up RR to start working
- * S3: The nRF waits (sleep during waiting time by "k_sem_take(&uart_process_rx_done, K_FOREVER)") until the RR 
-        has finished the ML inference and then wake the nRF up by sending water_level or Whole_picture data via ASYNC UART to the nRF
-        + First Header Byte: "D"  : Depth data
-        + First Header Byte: "P"  : Send whole picture to the cloud
-        + First Header Byte: "E"  : Tell the nrf that RR has already sent everything (trigger k_sem_give(&uart_process_rx_done); , then in the main.c , it can start to run AStar)
- * S4: nRF handles incoming data, and then send to the server
- * S5: nRF run AsTART++ and decide the sleep mode of the RR based on the calculated Sleeping time.
-        + If sleep_time < 1800s:  Send "S" to RR, and then RR going Suspend-to-RAM mode
-        + If sleep_time >= 1800s: Send ""
- *  
- */
