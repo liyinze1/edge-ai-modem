@@ -150,7 +150,6 @@ void uart_process_rx(void) {
                     waterLevel_tx_buf[i] = uart_rx_buf[(uart_rx_offset + i + 3) % sizeof(uart_rx_buf)];
                 }
                 waterLevel_tx_len = uart_rx_len - 3;
-                uart_send_ack();
                 waterlevel_tx = (waterLevel_tx_buf[0] << 8) | waterLevel_tx_buf[1];
                 LOG_INF("Water level is %d (cm)", waterlevel_tx);
 
@@ -159,6 +158,7 @@ void uart_process_rx(void) {
                 // modem_transmitData_startByte();
                 modem_transmitData_depth(uart_rx_buf);
                 // modem_transmitData_stopByte();
+                uart_send_ack();
 
                 break;
 
@@ -170,11 +170,12 @@ void uart_process_rx(void) {
                     // uart_send_nack();
                     break;
                 }
-                uart_send_ack();
 
                 // to-do: send Picture to server
                 // modem_transmitData_startByte();
                 modem_transmitData_picture(uart_rx_buf);
+                uart_send_ack();
+                
                 break;
 
             case 'E':
