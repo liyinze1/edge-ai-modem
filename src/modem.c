@@ -110,7 +110,7 @@ void modem_transmitData_depth(volatile uint8_t *modem_tx_buf) {
 	memset(txbuf, 0, sizeof(txbuf));
 	txbuf[0] = 2;		// Header Byte
 	// "modem_tx_len": obtained in UART callback
-	txbuf_len = uart_rx_len - 3;				
+	txbuf_len = uart_rx_len - 2;				
 	for (uint16_t i = 1; i <= txbuf_len; i++)
 	{
 		txbuf[i] =  modem_tx_buf[i+3];		// Ignore 03 first header Bytes 
@@ -127,7 +127,7 @@ void modem_transmitData_picture(volatile uint8_t *modem_tx_buf) {
 	memset(txbuf, 0, sizeof(txbuf));
 	txbuf[0] = 3;		// Header Byte
 	// "modem_tx_len": obtained in UART callback
-	txbuf_len = uart_rx_len - 3;				
+	txbuf_len = uart_rx_len - 2;				
 	for (uint16_t i = 1; i <= txbuf_len; i++)
 	{
 		txbuf[i] =  modem_tx_buf[i+3];		// Ignore 03 first header Bytes
@@ -138,11 +138,11 @@ void modem_transmitData_picture(volatile uint8_t *modem_tx_buf) {
 
 /**
  * @brief: To send "Stop" Byte/Header to the server
- * 			+ Header Byte = 4
+ * 			+ Header Byte = 255
  */
 void modem_transmitData_stopByte(void) {
 	memset(txbuf, 0, sizeof(txbuf));
-	txbuf[0] = 4;
+	txbuf[0] = 255;
 	txbuf_len = 1;	
 	modem_server_transmission_work_fn(NULL);
 }

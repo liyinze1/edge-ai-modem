@@ -156,9 +156,9 @@ void uart_process_rx(void) {
 
 
                 // to-do: send data to server
-                modem_transmitData_startByte();
+                // modem_transmitData_startByte();
                 modem_transmitData_depth(uart_rx_buf);
-                modem_transmitData_stopByte();
+                // modem_transmitData_stopByte();
 
                 break;
 
@@ -173,14 +173,13 @@ void uart_process_rx(void) {
                 uart_send_ack();
 
                 // to-do: send Picture to server
-                modem_transmitData_startByte();
+                // modem_transmitData_startByte();
                 modem_transmitData_picture(uart_rx_buf);
-                modem_transmitData_stopByte();
-
                 break;
 
             case 'E':
                 LOG_INF("Received end message from RR");
+                modem_transmitData_stopByte();
                 k_sem_give(&uart_process_rx_done);              // Finished processing UART data
                 break;
 
