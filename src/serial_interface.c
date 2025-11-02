@@ -138,12 +138,13 @@ void uart_process_rx(void) {
             //-----------------------------------------------------------------------------------------------------
             case 'D':
                 LOG_INF("Bytes RX: %u (bytes)", uart_rx_len);
-                payload_len_predec =  (uart_rx_buf[(uart_rx_offset + 1) % sizeof(uart_rx_buf)] << 8) | uart_rx_buf[(uart_rx_offset + 2) % sizeof(uart_rx_buf)];
-                if (payload_len_predec != uart_rx_len - 3) {
-                    LOG_ERR("Message specified length %u doesn't match rx'd %u", payload_len_predec, uart_rx_len - 3);
-                    // uart_send_nack();
-                    break;
-                }
+                // payload_len_predec =  (uart_rx_buf[(uart_rx_offset + 1) % sizeof(uart_rx_buf)] << 8) | uart_rx_buf[(uart_rx_offset + 2) % sizeof(uart_rx_buf)];
+
+                // if (payload_len_predec != uart_rx_len - 3) {
+                //     LOG_ERR("Message specified length %u doesn't match rx'd %u", payload_len_predec, uart_rx_len - 3);
+                //     // uart_send_nack();
+                //     break;
+                // }
 
                 // Trim message type and length (first 3 bytes)
                 for (size_t i = 0; i < (uart_rx_len - 3); i++) {
@@ -164,12 +165,12 @@ void uart_process_rx(void) {
 
             case 'P':
                 LOG_INF("Received Picture from RR");
-                payload_len_predec =  (uart_rx_buf[(uart_rx_offset + 1) % sizeof(uart_rx_buf)] << 8) | uart_rx_buf[(uart_rx_offset + 2) % sizeof(uart_rx_buf)];
-                if (payload_len_predec != uart_rx_len - 3) {
-                    LOG_ERR("Message specified length %u doesn't match rx'd %u", payload_len_predec, uart_rx_len - 3);
-                    // uart_send_nack();
-                    break;
-                }
+                // payload_len_predec =  (uart_rx_buf[(uart_rx_offset + 1) % sizeof(uart_rx_buf)] << 8) | uart_rx_buf[(uart_rx_offset + 2) % sizeof(uart_rx_buf)];
+                // if (payload_len_predec != uart_rx_len - 3) {
+                //     LOG_ERR("Message specified length %u doesn't match rx'd %u", payload_len_predec, uart_rx_len - 3);
+                //     // uart_send_nack();
+                //     break;
+                // }
 
                 // to-do: send Picture to server
                 // modem_transmitData_startByte();
