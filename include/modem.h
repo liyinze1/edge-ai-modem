@@ -23,17 +23,12 @@
 #define MSGTYPE_ACK_UPDATEREADY         6 
 
 // ----------------------- S - Preparing data for sending -----------------------
-// To send "Start" Byte/Header to the server
-void modem_transmitData_startByte(void);
 // To send "IMEI + AsTAR++ parameters" to the server
 void modem_transmitData_astar(uint16_t capMilliVolt, uint16_t sleepTime, 
 						uint16_t solarV, uint16_t reconnection_times);
-// To send ONLY Depth/Distance to the server						
-void modem_transmitData_depth(volatile uint8_t *modem_tx_buf);
-// To send the whole picture to the server
-void modem_transmitData_picture(volatile uint8_t *modem_tx_buf);
-// To send "Stop" Byte/Header to the server
-void modem_transmitData_stopByte(void);
+// To send data to the server						
+void modem_transmitData();
+
 // ----------------------- E - Preparing data for sending -----------------------
 
 // Sending data to server

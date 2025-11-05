@@ -125,69 +125,30 @@ void uart_send_ack(void) {
 
 void uart_process_rx(void) {
     LOG_INF("current offset %d, current length %d", uart_rx_offset, uart_rx_len);
-    uint8_t payload_len_predec;
-
     if (uart_rx_len >= 1) {
+
         switch (uart_rx_buf[(uart_rx_offset + 0) % sizeof(uart_rx_buf)]) {
             
-            //-----------------------------------------------------------------------------------------------------
-            // if received bytes: D  00 02 xx xx  [0x11 0x22 0x33 0x44 0x55]
-            //      + 'D' = Depth packet
-            //      +  00 05 = 5 bytes payload length predeclared on RR
-            //      +  Payload = [0x11, 0x22, 0x33, 0x44, 0x55]
-            //-----------------------------------------------------------------------------------------------------
             case 'D':
-                LOG_INF("Bytes RX: %u (bytes)", uart_rx_len);
-                // payload_len_predec =  (uart_rx_buf[(uart_rx_offset + 1) % sizeof(uart_rx_buf)] << 8) | uart_rx_buf[(uart_rx_offset + 2) % sizeof(uart_rx_buf)];
-
-                // if (payload_len_predec != uart_rx_len - 3) {
-                //     LOG_ERR("Message specified length %u doesn't match rx'd %u", payload_len_predec, uart_rx_len - 3);
-                //     // uart_send_nack();
-                //     break;
-                // }
-
-                // Trim message type and length (first 3 bytes)
-                for (size_t i = 0; i < (uart_rx_len - 3); i++) {
-                    waterLevel_tx_buf[i] = uart_rx_buf[(uart_rx_offset + i + 3) % sizeof(uart_rx_buf)];
-                }
-                waterLevel_tx_len = uart_rx_len - 3;
-                waterlevel_tx = (waterLevel_tx_buf[0] << 8) | waterLevel_tx_buf[1];
-                LOG_INF("Water level is %d (cm)", waterlevel_tx);
-
-
-                // to-do: send data to server
-                // modem_transmitData_startByte();
-                modem_transmitData_depth(uart_rx_buf);
-                // modem_transmitData_stopByte();
+                LOG_INF("Received Depth");
+                modem_transmitData();
                 uart_send_ack();
-
                 break;
 
             case 'P':
-                LOG_INF("Received Picture from RR");
-                // payload_len_predec =  (uart_rx_buf[(uart_rx_offset + 1) % sizeof(uart_rx_buf)] << 8) | uart_rx_buf[(uart_rx_offset + 2) % sizeof(uart_rx_buf)];
-                // if (payload_len_predec != uart_rx_len - 3) {
-                //     LOG_ERR("Message specified length %u doesn't match rx'd %u", payload_len_predec, uart_rx_len - 3);
-                //     // uart_send_nack();
-                //     break;
-                // }
-
-                // to-do: send Picture to server
-                // modem_transmitData_startByte();
-                modem_transmitData_picture(uart_rx_buf);
+                LOG_INF("Received Picture");
+                modem_transmitData();
                 uart_send_ack();
-                
                 break;
 
             case 'E':
-                LOG_INF("Received end message from RR");
-                modem_transmitData_stopByte();
-                k_sem_give(&uart_process_rx_done);              // Finished processing UART data
+                LOG_INF("Received Ending message");
+                modem_transmitData();
+                k_sem_give(&uart_process_rx_done);
                 break;
 
             default:
                 LOG_ERR("Received unknown message type");
-                // uart_send_nack();
                 break;
         }
     }

@@ -4,6 +4,8 @@
 
 #define UDP_IP_HEADER_SIZE 28
 
+LOG_MODULE_REGISTER(modem); 
+
 // UDP Addresses and Sockets 
 static int16_t server_send_fd;
 static struct sockaddr_in addr_server_sendto;
@@ -15,7 +17,7 @@ static char client_id_imei[16] = {0};
 static char client_rsrp[5] = {0};				
 static char client_rsrp_val = 0;
 
-static uint8_t txbuf[65535] = {0};
+static uint8_t txbuf[2048] = {0}; // avoid RAM overflow
 static uint16_t txbuf_len;
 
 int8_t err;
@@ -29,7 +31,7 @@ K_SEM_DEFINE(lte_connected, 0, 1);
 void rsrp_cb(char rsrp_value)
 {
 	client_rsrp_val = rsrp_value;
-	printk("The RSRP of the system: %d\n", client_rsrp_val);
+	LOG_INF("The RSRP of the system: %d\n", client_rsrp_val);
 }
 
 // - ------------------- Formated Data + Send - S ----------------------
@@ -63,19 +65,6 @@ void rsrp_cb(char rsrp_value)
 // }
 
 
-
-/**
- * @brief: To send "Start" Byte/Header to the server
- * 			+ Header Byte = 0
- */
-void modem_transmitData_startByte(void) {
-	memset(txbuf, 0, sizeof(txbuf));
-	txbuf[0] = 0;
-	txbuf_len = 1;	
-	modem_server_transmission_work_fn(NULL);
-}
-
-
 /**
  * @bried: To send "IMEI + AsTAR++ parameters" to the server
  * 			+ Header Byte: = 1
@@ -102,74 +91,23 @@ void modem_transmitData_astar(uint16_t capMilliVolt, uint16_t sleepTime,
 
 
 /**
- * @brief: To send Depth/Distance to the server
- * 			+ Header Byte = 2
+ * @brief: To send Depth/Distance/Picture to the server
+ * 
  */
 
-void modem_transmitData_depth(volatile uint8_t *modem_tx_buf) {
-	memset(txbuf, 0, sizeof(txbuf));
-	txbuf[0] = 2;		// Header Byte
-	// "modem_tx_len": obtained in UART callback
-	txbuf_len = uart_rx_len - 2;				
-	for (uint16_t i = 1; i <= txbuf_len; i++)
-	{
-		txbuf[i] =  modem_tx_buf[i+3];		// Ignore 03 first header Bytes 
-	}
+void modem_transmitData() {
+    for (uint16_t i = 0; i < uart_rx_len; i++) {
+        txbuf[i] = uart_rx_buf[(uart_rx_offset + i) % sizeof(uart_rx_buf)];
+    }
 	modem_server_transmission_work_fn(NULL);
 }
 
-
-/**
- * @brief: To send the whole picture to the server
- * 			+ Header Byte = 3
- */
-void modem_transmitData_picture(volatile uint8_t *modem_tx_buf) {
-	memset(txbuf, 0, sizeof(txbuf));
-	txbuf[0] = 3;		// Header Byte
-	// "modem_tx_len": obtained in UART callback
-	txbuf_len = uart_rx_len - 2;				
-	for (uint16_t i = 1; i <= txbuf_len; i++)
-	{
-		txbuf[i] =  modem_tx_buf[i+3];		// Ignore 03 first header Bytes
-	}
-	modem_server_transmission_work_fn(NULL);
-}
-
-
-/**
- * @brief: To send "Stop" Byte/Header to the server
- * 			+ Header Byte = 255
- */
-void modem_transmitData_stopByte(void) {
-	memset(txbuf, 0, sizeof(txbuf));
-	txbuf[0] = 255;
-	txbuf_len = 1;	
-	modem_server_transmission_work_fn(NULL);
-}
 
 
 void modem_server_transmission_work_fn(struct k_work *work)
 {
-	int8_t err;
-	printk("\nIP address %s, Port number %d\n",
-		       CONFIG_UDP_SERVER_ADDRESS_STATIC,
-		       CONFIG_UDP_SERVER_PORT);	
-
-	printk("\n*********************************************\n");
-	printk("Data to send over LTE-M (as integers, with IMEI embedded as ASCII):\n");
-	for(uint16_t i = 0; i < txbuf_len; i++) {
-		printk("%d\t", txbuf[i]);
-	}
-	printk("\n*********************************************\n");
-	
-	err = send(server_send_fd, txbuf, (size_t)txbuf_len, 0);
-	if (err < 0) {
-		printk("Failed to transmit UDP packet, %d %s\n", errno, strerror(errno));
-		// is_connected = false;
-		printk("Failed to transmit UDP packet. is_connected = false \n");
-	} else {
-		// is_connected = true;
-		printk("Successfully transmitted UDP packet\n");
+	if (send(server_send_fd, txbuf, (size_t)txbuf_len, 0) < 0) {
+		LOG_ERR("send() error: %i", errno);
 	}
 }
 // --------------------- Formated Data + Send - E ----------------------
@@ -185,7 +123,7 @@ void modem_main_init(void)
 		modem_modem_init();
 		err = modem_configure_low_power();
 		if (err) {
-			printk("Unable to set low power configuration, error: %d\n",
+			LOG_ERR("Unable to set low power configuration, error: %d\n",
 		    	   err);
 		}
 		modem_modem_connect(); 
@@ -194,29 +132,29 @@ void modem_main_init(void)
 
 	err = modem_udp_init();
 	if (err) {
-		printk("Not able to initialize UDP server connection\n");
+		LOG_ERR("Not able to initialize UDP server connection\n");
 		return;
 	}
 
-	printk("Initialising modem info library...\n");
+	LOG_INF("Initialising modem info library...\n");
 	err = modem_info_init();
 	if (err) {
-		printk("Unable to initialise modem info library, error: %d\n", err);
+		LOG_ERR("Unable to initialise modem info library, error: %d\n", err);
 	}
 
-    printk("Querying IMEI\n");
+    LOG_INF("Querying IMEI\n");
 	/*err = nrf_modem_at_cmd(imei_buf, sizeof(imei_buf), "AT+CGSN");
 	if (err) {
-		printk("Not able to retrieve device IMEI from modem\n");
+		LOG_INF("Not able to retrieve device IMEI from modem\n");
     	//return;
 	}*/
 	modem_info_string_get(MODEM_INFO_IMEI, imei_buf, sizeof(imei_buf));
 	strncpy(client_id_imei, imei_buf, sizeof(client_id_imei) - 1);
-	printk("IMEI : %s\n", client_id_imei);
+	LOG_INF("IMEI : %s\n", client_id_imei);
 
 	modem_info_string_get(MODEM_INFO_RSRP, rsrp_buf, sizeof(rsrp_buf));
 	strncpy(client_rsrp, rsrp_buf, sizeof(client_rsrp) - 1);
-	printk("RSRP : %s\n", client_rsrp);
+	LOG_INF("RSRP : %s\n", client_rsrp);
 }
 
 
@@ -230,11 +168,11 @@ void modem_main_init(void)
 	{
 		int8_t err;
 
-		printk("Modem initialization...\n");
+		LOG_INF("Modem initialization...\n");
 
 		err = nrf_modem_lib_init();
 		if (err) {
-			printk("Failed to initialize modem library, error: %d\n", err);
+			LOG_ERR("Failed to initialize modem library, error: %d\n", err);
 			return;
 		}
 
@@ -249,7 +187,7 @@ void modem_main_init(void)
 			if (is_nrf9160()) {
 				err = nrf_modem_at_printf("AT%%REL14FEAT=0,1,0,0,0");
 				if (err) {
-					printk("Failed to enable Access Stratum RAI support, error: %d\n", err);
+					LOG_ERR("Failed to enable Access Stratum RAI support, error: %d\n", err);
 					return err;
 				}
 			}
@@ -257,7 +195,7 @@ void modem_main_init(void)
 
 		err = lte_lc_init();
 		if (err) {
-			printk("Modem initialization failed, error: %d\n", err);
+			LOG_ERR("Modem initialization failed, error: %d\n", err);
 			return;
 		}
 
@@ -272,12 +210,12 @@ void modem_main_init(void)
 			/** Power Saving Mode */
 			err = lte_lc_psm_req(true);
 			if (err) {
-				printk("lte_lc_psm_req, error: %d\n", err);
+				LOG_ERR("lte_lc_psm_req, error: %d\n", err);
 			}
 		#else
 			err = lte_lc_psm_req(false);
 			if (err) {
-				printk("lte_lc_psm_req, error: %d\n", err);
+				LOG_ERR("lte_lc_psm_req, error: %d\n", err);
 			}
 		#endif
 
@@ -285,12 +223,12 @@ void modem_main_init(void)
 			/** enhanced Discontinuous Reception */
 			err = lte_lc_edrx_req(true);
 			if (err) {
-				printk("lte_lc_edrx_req, error: %d\n", err);
+				LOG_ERR("lte_lc_edrx_req, error: %d\n", err);
 			}
 		#else
 			err = lte_lc_edrx_req(false);
 			if (err) {
-				printk("lte_lc_edrx_req, error: %d\n", err);
+				LOG_ERR("lte_lc_edrx_req, error: %d\n", err);
 			}
 		#endif
 
@@ -298,7 +236,7 @@ void modem_main_init(void)
 			/** Release Assistance Indication  */
 			err = lte_lc_rai_req(true);
 			if (err) {
-				printk("lte_lc_rai_req, error: %d\n", err);
+				LOG_ERR("lte_lc_rai_req, error: %d\n", err);
 			}
 		#endif
 
@@ -313,7 +251,7 @@ void modem_main_init(void)
 		} else {
 			err = lte_lc_connect_async(modem_lte_handler); // Take callback function "modem_lte_handler" as argument
 			if (err) {
-				printk("Connecting to LTE network failed, error: %d\n", err);
+				LOG_ERR("Connecting to LTE network failed, error: %d\n", err);
 				return;
 			}
 		}
@@ -326,10 +264,10 @@ void modem_main_init(void)
 			if ((evt->nw_reg_status != LTE_LC_NW_REG_REGISTERED_HOME) &&
 	     		(evt->nw_reg_status != LTE_LC_NW_REG_REGISTERED_ROAMING)) {
 				is_connected = false;
-				printk ("Cannot register the network: is_connected =  false \n");
+				LOG_ERR ("Cannot register the network: is_connected =  false \n");
 				break;
 			}
-			printk("Network registration status: %s\n",
+			LOG_INF("Network registration status: %s\n",
 				evt->nw_reg_status == LTE_LC_NW_REG_REGISTERED_HOME ?
 				"Connected - home network" : "Connected - roaming\n");
 			
@@ -338,7 +276,7 @@ void modem_main_init(void)
 			k_sem_give(&lte_connected);
 			break;
 		case LTE_LC_EVT_PSM_UPDATE:
-			printk("PSM parameter update: TAU: %d, Active time: %d\n",
+			LOG_INF("PSM parameter update: TAU: %d, Active time: %d\n",
 			evt->psm_cfg.tau, evt->psm_cfg.active_time);
 			break;
 		case LTE_LC_EVT_EDRX_UPDATE: {
@@ -348,25 +286,25 @@ void modem_main_init(void)
 		       		"eDRX parameter update: eDRX: %f, PTW: %f\n",
 		       		evt->edrx_cfg.edrx, evt->edrx_cfg.ptw);
 			if (len > 0) {
-				printk("%s\n", log_buf);
+				LOG_INF("%s\n", log_buf);
 			}
 			break;
 		}
 		case LTE_LC_EVT_RRC_UPDATE:
-			printk("RRC mode: %s\n",
+			LOG_INF("RRC mode: %s\n",
 				evt->rrc_mode == LTE_LC_RRC_MODE_CONNECTED ?
 				"Connected" : "Idle\n");
 			if (evt->rrc_mode == LTE_LC_RRC_MODE_CONNECTED)
 				is_connected = true;
 			break;
 		case LTE_LC_EVT_CELL_UPDATE:
-			printk("LTE cell changed: Cell ID: %d, Tracking area: %d\n",
+			LOG_INF("LTE cell changed: Cell ID: %d, Tracking area: %d\n",
 	       		evt->cell.id, evt->cell.tac);
 			// Reconnect if the connection is lossed 
 			if (evt->cell.id == -1)
 			{
 				is_connected = false;
-				printk ("++ Cannot find CELL ID. is_connected = false! \n");
+				LOG_ERR ("++ Cannot find CELL ID. is_connected = false! \n");
 			}
 			break;
 
@@ -392,10 +330,10 @@ int8_t modem_udp_init(void)
 	addr_server_sendto.sin_port = htons(CONFIG_UDP_SERVER_PORT);
 	status = inet_pton(AF_INET, CONFIG_UDP_SERVER_ADDRESS_STATIC, &addr_server_sendto.sin_addr);
 	if (status == 0) {
-		printk("src does not contain a character string representing a valid network address\n");
+		LOG_INF("src does not contain a character string representing a valid network address\n");
 		return -1;
 	} else if(status < 0) {
-		printk("inet_pton failed: %d %s\n", errno, strerror(errno));
+		LOG_ERR("inet_pton failed: %d %s\n", errno, strerror(errno));
 		err = -errno;
 		goto error;
 	}
@@ -403,7 +341,7 @@ int8_t modem_udp_init(void)
 	// Set up server socket and connect
 	server_send_fd = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
 	if (server_send_fd < 0) {
-		printk("UDP socket creation failed: %d\n", errno);
+		LOG_ERR("UDP socket creation failed: %d\n", errno);
 		err = -errno;
 		goto error;
 	}
@@ -412,7 +350,7 @@ int8_t modem_udp_init(void)
 	err = connect(server_send_fd, (struct sockaddr *)&addr_server_sendto,
 		      sizeof(struct sockaddr_in));
 	if (err < 0) {
-		printk("Connect failed : %d\n", errno);
+		LOG_ERR("Connect failed : %d\n", errno);
 		goto error;
 	}
 
@@ -449,41 +387,41 @@ bool check_network_connection(void)
 int8_t reconnect_to_network(void)
 {
 	int8_t err4;
-	printk("************ Attempting to reconnect... **************** \n");
+	LOG_INF("************ Attempting to reconnect... **************** \n");
 	modem_modem_init();
 	err4 = modem_configure_low_power();
 		if (err4) {
-			printk("Unable to set low power configuration, error: %d\n", err4);
+			LOG_ERR("Unable to set low power configuration, error: %d\n", err4);
 		}
 	reconnection_times = reconnection_times + 1;
 	modem_modem_connect(); 
 	if (k_sem_take(&lte_connected, K_SECONDS(60)) == 0) {
-		printk("Finished Re-initialize the modem\n");
+		LOG_INF("Finished Re-initialize the modem\n");
 		is_connected = true;
 	} 
 	else{ 
 		is_connected = false;
-		printk("cannot connect to eNode B in 60s!\n");
+		LOG_INF("cannot connect to eNode B in 60s!\n");
 	}
 
 	err4 = modem_info_init();
 	if (err4) {
-		printk("Unable to initialise modem info library, error: %d\n", err4);
+		LOG_ERR("Unable to initialise modem info library, error: %d\n", err4);
 	}
 
-    printk("Querying IMEI\n");
+    LOG_INF("Querying IMEI\n");
 	modem_info_string_get(MODEM_INFO_IMEI, imei_buf, sizeof(imei_buf));
 	strncpy(client_id_imei, imei_buf, sizeof(client_id_imei) - 1);
-	printk("IMEI : %s\n", client_id_imei);
+	LOG_INF("IMEI : %s\n", client_id_imei);
 
 	//modem_info_rsrp_register(rsrp_cb);
 	modem_info_string_get(MODEM_INFO_RSRP, rsrp_buf, sizeof(rsrp_buf));
 	strncpy(client_rsrp, rsrp_buf, sizeof(client_rsrp) - 1);
-	printk("RSRP : %s\n", client_rsrp);
+	LOG_INF("RSRP : %s\n", client_rsrp);
 
 	err4 = modem_udp_init();
 	if (err4) {
-		printk("Not able to initialize UDP server connection\n");
+		LOG_ERR("Not able to initialize UDP server connection\n");
 		return 1;
 	}
     return 0;

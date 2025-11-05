@@ -1,23 +1,25 @@
 /*
  * @brief: Used to wake the RR by pull its wake-up pin down 
  */
-
+#include <zephyr/logging/log.h>
 #include "roadrunner_wakeup.h"
 
 int8_t ret_SW;
 
 #define D_OP1 DT_ALIAS(op1)
 
+LOG_MODULE_REGISTER(roadrunner_wakeup);
+
 static const struct gpio_dt_spec dev_op1  = GPIO_DT_SPEC_GET(D_OP1, gpios);
 
 int8_t runner_wakeup_int(void){
     if (!device_is_ready(dev_op1.port)) {
-        printk("GPIO initialization for waking up RoadRunner is not successful!");
+        LOG_INF("GPIO initialization for waking up RoadRunner is not successful!");
 	    return (1);
     }
     ret_SW = gpio_pin_configure_dt(&dev_op1, GPIO_OUTPUT_ACTIVE);
     if (ret_SW < 0) {
-	    printk("Pin Configuration for waking up RoadRunner is not successful!");
+	    LOG_ERR("Pin Configuration for waking up RoadRunner is not successful!");
         return (1);
     }
     return 0;
