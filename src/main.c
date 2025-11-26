@@ -51,7 +51,7 @@ int main(void)
   LOG_INF("Starting...");
   setup_gpio();			
 	setup_accel();
-	// setup_uart();      // Suspend UART2
+	setup_uart();      // Suspend UART2
 
   // Init modem - power off modem for saving enegy
 	// nrf_modem_lib_init();
