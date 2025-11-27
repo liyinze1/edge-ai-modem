@@ -36,6 +36,8 @@ uint8_t waterLevel_tx_len;
 uint16_t waterLevel_tx_buf[2];
 uint16_t waterlevel_tx;
 
+static const struct device *const console_dev2 = DEVICE_DT_GET(DT_NODELABEL(uart2));    // Enable UART2 by using Power Management Subsystem
+
 
 //--------------------------------------- S- UART -------------------------------------
 #define STACKSIZE 512
@@ -49,9 +51,18 @@ K_THREAD_DEFINE(thread_uartprocess_id, STACKSIZE, thread_uartprocess, NULL, NULL
 int main(void)
 {
   LOG_INF("Starting...");
-  setup_gpio();			
+
+// Disable UART2 by using Power Management Subsystem
+      
+    int err2 = pm_device_action_run(console_dev2, PM_DEVICE_ACTION_SUSPEND);
+    if (err2 < 0)
+    {
+    printk("Unable to suspend console UART. (err: %d)\n", err2);
+    }
+
+    setup_gpio();			
 	setup_accel();
-	setup_uart();      // Suspend UART2
+	// setup_uart();      // Suspend UART2
 
   // Init modem - power off modem for saving enegy
 	// nrf_modem_lib_init();

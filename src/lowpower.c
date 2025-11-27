@@ -51,3 +51,16 @@ int setup_uart()
 	return 0;
 }
 
+//********** Enable - Peripherals =>to read UART sensor
+// int re_setup_uart()
+// {
+//     //static const struct device *const console_dev = DEVICE_DT_GET(DT_CHOSEN(zephyr_console));
+//     /* Enable console UART */
+//     int err3 = pm_device_action_run(console_dev, PM_DEVICE_ACTION_RESUME);
+//     if (err3 < 0)
+//     {
+//         printk("Unable to suspend console UART. (err: %d)\n", err3);
+//         return err3;
+//     }
+//     return 0;
+// }
