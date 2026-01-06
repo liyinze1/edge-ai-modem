@@ -1,3 +1,6 @@
+//=============================================================================#
+//  Management of Waking nRF up                                                #
+//=============================================================================#
 
 #ifndef APPLICATION_NRFWAKEUP_H
 #define APPLICATION_NRFWAKEUP_H
@@ -9,7 +12,7 @@
 #include <stdlib.h>
 
 
-// FUNCTION DEFINITIONS 
+// Function denifitions
 int8_t nrf_wakeup_init(void);
 
 #endif /*APPLICATION_NRFWAKEUP_H*/

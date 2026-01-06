@@ -1,11 +1,13 @@
+//=============================================================================#
 /**
  * @brief: Read Voltage of solar Panels
  *     + Channel AIN0	
  *     + Resolution: 14 bit
 */
+//=============================================================================#
 
-#ifndef READ_SOLAR_H_
-#define READ_SOLAR_H_
+#ifndef APPICATION_READ_SOLAR_H_
+#define APPICATION_READ_SOLAR_H_
 
 #include <zephyr/device.h>
 #include <zephyr/devicetree.h>
@@ -29,4 +31,4 @@
 // To read average ADC value
 uint16_t read_adc(void);
 
-#endif
+#endif  /*APPICATION_READ_SOLAR_H*/

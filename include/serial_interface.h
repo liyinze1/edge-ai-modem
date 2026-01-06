@@ -1,5 +1,9 @@
-#ifndef SERIAL_INTERFACE_H
-#define SERIAL_INTERFACE_H
+//=============================================================================#
+//  UART Management                                                            #
+//=============================================================================#
+
+#ifndef APPLICATION_SERIAL_INTERFACE_H
+#define APPLICATION_SERIAL_INTERFACE_H
 
 #include <stdint.h>  // for uint16_t
 #include <zephyr/kernel.h>
@@ -36,4 +40,4 @@ void uart_send_cmd_powerdown(void);
 
 
 
-#endif /*SERIAL_INTERFACE_H*/
+#endif /*APPLICATION_SERIAL_INTERFACE_H*/

@@ -1,4 +1,4 @@
-#include "switch_divider.h"
+#include "switch_Vpv_divider.h"
 
 int8_t ret_SW3;
 #define SW_DIV DT_ALIAS(swdivider)

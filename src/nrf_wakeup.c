@@ -1,9 +1,3 @@
-/**
- * @brief:  + The nRF is woken up by the RoadRunner (using a GPIO interrupt) after it completed ML inference
- *              so that the nRF can receive from the RR and send UART data to the cloud.
- *          + When the RR pulls the wake-in pin high (rising edge), a GPIO interrupt is fired to wake up the nRF 
-*/ 
-
 #include "nrf_wakeup.h"
 #include "serial_interface.h"
 

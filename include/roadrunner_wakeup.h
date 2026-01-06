@@ -1,3 +1,6 @@
+//=============================================================================#
+//  Management of Waking nRF up                                                #
+//=============================================================================#
 
 #ifndef APPLICATION_ROADRUNNERWAKEUP_H
 #define APPLICATION_ROADRUNNERWAKEUP_H
@@ -14,4 +17,4 @@ int8_t runner_wakeup_int(void);
 void runner_set_wakeup(void);
 void runner_reset_wakeup(void);
 
-#endif
+#endif  /*APPLICATION_ROADRUNNERWAKEUP_H*/

@@ -1,5 +1,5 @@
-#ifndef MODEM_H
-#define MODEM_H
+#ifndef APPLICATION_MODEM_H
+#define APPLICATION_MODEM_H
 
 #include <modem/lte_lc.h>
 #include <zephyr/net/socket.h>
@@ -53,4 +53,4 @@ bool check_network_connection(void);
 int8_t reconnect_to_network(void);
 uint16_t reconnection_numbers(void);    // The number of reconnections
 //---------------------------- E - Reconnection --------------------------
-#endif
+#endif	/*APPLICATION_MODEM_H*/

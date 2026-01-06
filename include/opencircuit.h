@@ -1,8 +1,6 @@
-
-/**
- * @brief: //v- To Isolate the solar panel when V > Vmax
- *     
-*/
+//=============================================================================#
+// Isolate the solar panel when V > Vmax to protect the system                 #
+//=============================================================================#
 
 #ifndef APPICATION_OPEN_CIRCUIT_H
 #define APPICATION_OPEN_CIRCUIT_H
@@ -20,5 +18,5 @@ void connect_solar (void);
 // Turrn off the Digital Switch to isolate solar panels from the Caps
 void isolate_solar (void);
 
-#endif
+#endif  /*APPICATION_OPEN_CIRCUIT_H*/
 

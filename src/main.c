@@ -23,28 +23,55 @@
 #include "serial_interface.h"
 #include "nrf_wakeup.h"
 
+#include "astar_paras.h"
+#include "opencircuit.h"
+#include "read_solar.h"
+
 
 LOG_MODULE_REGISTER(main);
 
+// K_SEM_DEFINE(my_semaphore_vcap, 1, 1);              // prevent a lot of threads from reading Vcap at the same time
 
 // Declare variables
 int8_t ret;
 uint16_t sleeptimer;
 
-
 uint8_t waterLevel_tx_len;
 uint16_t waterLevel_tx_buf[2];
 uint16_t waterlevel_tx;
 
-
-//--------------------------------------- S- UART -------------------------------------
+//----------------------------------------------------------------------------------------
+// ++++++++++++++++++++++ S- UART THREAD ++++++++++++++++++++++++
+//----------------------------------------------------------------------------------------
 #define STACKSIZE 512
 #define THREAD_UARTPROCESS_PRIORITY 5
 void thread_uartprocess (void);
-
 K_THREAD_DEFINE(thread_uartprocess_id, STACKSIZE, thread_uartprocess, NULL, NULL, NULL,
 	THREAD_UARTPROCESS_PRIORITY, 0, 0);
-//--------------------------------------- E- UART -------------------------------------
+// -------------------------------------- E- UART THREAD ------------------------------------
+
+//----------------------------------------------------------------------------------------
+// ++++++++++++++++++++++ S- Re-connection THREAD ++++++++++++++++++++++++
+//----------------------------------------------------------------------------------------
+#define RECONN_STACK_SIZE  8192
+#define RECONN_PRIORITY 5
+void reconnection_thread(void);
+K_THREAD_DEFINE(ReConn_id, RECONN_STACK_SIZE, reconnection_thread, NULL, NULL, NULL,
+		            RECONN_PRIORITY, 0, 0);
+// ---------------------- E- Re-connection THREAD -----------------------------------------
+
+//----------------------------------------------------------------------------------------
+//++++++++++++++++++++++ Caps Overvoltage Protection THREAD ++++++++++++++++++++++++
+//----------------------------------------------------------------------------------------
+#define OVER_V_STACK_SIZE 4096
+#define OVER_V_PRIORITY 1
+void overV_protection_thread(void);
+K_THREAD_DEFINE(over_v_id, OVER_V_STACK_SIZE, overV_protection_thread, NULL, NULL, NULL,
+	              OVER_V_PRIORITY, 0, 0);
+// ++++++++++++++++++++++ E- Caps Overvoltage Protection THREAD +++++++++++++++++++++
+
+
+
 
 int main(void)
 {
@@ -106,6 +133,14 @@ int main(void)
 
     // Todo: AsTAR++ scheduler here
     LOG_INF("Run AsTAR++");
+
+
+
+
+
+
+
+
     // Seed the random number generator with the current time
     srand(time(NULL));
     int min = 1799;
