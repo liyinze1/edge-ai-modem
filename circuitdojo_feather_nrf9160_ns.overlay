@@ -42,6 +42,42 @@
 // *************************** Serial Interface - E *************************
 
 
+// *************************** S- Turn OFF DS isolating the solar panel when V > Vmax - S2 **************************
+/{    
+    Vu_OpenCircuit{
+		compatible = "gpio-leds";
+        label = "Digital Switch for isolating solar Panelss when V > 5V";
+		OpenCircuit: switch_solar{
+			gpios = <&gpio0 22 (GPIO_PULL_UP | GPIO_ACTIVE_HIGH)>;
+            label = "Digital Switch for isolating Solar panel";
+		};
+    };
+
+    aliases {
+        opencircuit = &OpenCircuit;
+    };
+};
+// *************************** E- Turn OFF DS isolating the solar panel when V > Vmax - S2 **************************
+
+
+// ************ S- Enable/Disable the divider of V_solar reading - S1 ************* 
+/{  
+    Vu_Digital_Switches{
+		compatible = "gpio-leds";
+        label = "Digital Switch";
+		D_SW3: digital_sw3 {
+            gpios = <&gpio0 2 GPIO_ACTIVE_HIGH>;
+			label = "Digital Switch for enable/disable the divider of V_solar reading";
+		};
+    };
+    
+    aliases {
+        swdivider = &D_SW3;
+    };
+};
+// ************ E- Enable/Disable the divider of V_solar reading - S1 *************
+
+
 
 // =========================================================================================================
 // Start - ******************** Overlay file for Ultra Low power for Circuit Dojo ********************
