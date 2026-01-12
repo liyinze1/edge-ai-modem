@@ -5,6 +5,7 @@
 #include <zephyr/logging/log.h>
 #include <zephyr/sys/util.h>
 
+#include "enable_print.h"
 #include "read_vcap.h"
 
 // AIN1

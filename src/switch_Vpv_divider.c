@@ -1,3 +1,4 @@
+#include "enable_print.h"
 #include "switch_Vpv_divider.h"
 
 int8_t ret_SW3;

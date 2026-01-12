@@ -1,3 +1,4 @@
+#include "enable_print.h"
 #include "opencircuit.h"
 
 int8_t ret_open;

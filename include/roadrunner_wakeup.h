@@ -1,7 +1,7 @@
 //=============================================================================#
-//  Management of Waking nRF up                                                #
+// Management of Waking nRF up                                                 #
+//      @brief: Used to wake the RR by pull its wake-up pin down               # 
 //=============================================================================#
-
 #ifndef APPLICATION_ROADRUNNERWAKEUP_H
 #define APPLICATION_ROADRUNNERWAKEUP_H
 

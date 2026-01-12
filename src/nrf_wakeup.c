@@ -1,3 +1,4 @@
+#include "enable_print.h"
 #include "nrf_wakeup.h"
 #include "serial_interface.h"
 

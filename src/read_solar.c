@@ -1,3 +1,4 @@
+#include "enable_print.h"
 #include"read_solar.h"
 
 int32_t sample_buffer[ADC_NUM_CHANNELS];   			// Create buffer including n members to storage ADC_channels' raw value

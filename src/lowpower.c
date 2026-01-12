@@ -1,3 +1,4 @@
+#include "enable_print.h"
 #include"lowpower.h"
 
 void setup_accel(void)
@@ -23,9 +24,8 @@ void setup_accel(void)
 	}
 }
 
-int setup_gpio(void)
+int8_t setup_gpio(void)
 {
-
 	gpio_pin_configure_dt(&sw0, GPIO_DISCONNECTED);
 	gpio_pin_configure_dt(&led0, GPIO_DISCONNECTED);
 	gpio_pin_configure_dt(&latch_en, GPIO_DISCONNECTED);
@@ -35,19 +35,34 @@ int setup_gpio(void)
 }
 
 
-int setup_uart()
+// Disable UART
+int8_t setup_uart_DIS()
 {
-	static const struct device *const console_dev =
-		DEVICE_DT_GET(DT_CHOSEN(zephyr_console));
+	//static const struct device *const console_dev = DEVICE_DT_GET(DT_CHOSEN(zephyr_console));
 	/* Disable console UART */
-	int err = pm_device_action_run(console_dev, PM_DEVICE_ACTION_SUSPEND);
+	int8_t err = pm_device_action_run(console_dev, PM_DEVICE_ACTION_SUSPEND);
 	if (err < 0)
 	{
-		printk("Unable to suspend console UART. (err: %d)\n", err);
+		LOG_ERR("Unable to suspend console UART. (err: %d)\n", err);
 		return err;
 	}
+
 	/* Turn off to save power (High Speed clock) */
 	NRF_CLOCK->TASKS_HFCLKSTOP = 1;
+
 	return 0;
 }
 
+// Enable UART
+int8_t setup_uart_ENA()
+{
+	//static const struct device *const console_dev = DEVICE_DT_GET(DT_CHOSEN(zephyr_console));
+	/* Enable console UART */
+	int8_t err = pm_device_action_run(console_dev, PM_DEVICE_ACTION_RESUME);
+	if (err < 0)
+	{
+		LOG_ERR("Unable to enable console UART. (err: %d)\n", err);
+		return err;
+	}
+	return 0;
+}

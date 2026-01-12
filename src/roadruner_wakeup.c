@@ -1,7 +1,6 @@
-/*
- * @brief: Used to wake the RR by pull its wake-up pin down 
- */
 #include <zephyr/logging/log.h>
+
+#include "enable_print.h"
 #include "roadrunner_wakeup.h"
 
 int8_t ret_SW;

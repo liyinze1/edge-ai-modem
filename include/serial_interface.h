@@ -22,7 +22,7 @@ static volatile uint16_t uart_rx_len;
 static volatile uint16_t uart_rx_offset;
 
 
-extern struct k_sem uart_data_ready;                // Finished receiving UART RX data 
+extern struct k_sem uart_data_ready;                // UART RX data is available and ready to be processed 
 extern struct k_sem uart_process_rx_done;           // Finished processing UART RX data   
 
 extern uint8_t waterLevel_tx_len;
@@ -36,6 +36,9 @@ void uart_send_ready(void);
 void uart_process_rx(void);
 void uart_send_cmd_suspendRAM(void);
 void uart_send_cmd_powerdown(void);
+
+
+void thread_uartprocess (void);
 
 
 

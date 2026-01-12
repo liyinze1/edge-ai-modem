@@ -18,7 +18,7 @@
 #include <zephyr/sys/util.h>
 #include <zephyr/drivers/gpio.h>
 
-#define ENABLE_PRINT 0
+
 K_SEM_DEFINE(my_semaphore_vcap, 1, 1);      // prevent a lot of threads from reading Vcap at the same time
 
 
@@ -69,6 +69,7 @@ uint16_t  Reconnection_Times          = 0;
 // ---------------------------------------------------------------------------
 // Function Definitions
 // ---------------------------------------------------------------------------
+
 // Declare Functions used in AsTAR++
 void setSuspensionHandler();
 void Schedule(void);

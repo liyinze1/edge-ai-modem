@@ -16,6 +16,9 @@
 #include <modem/nrf_modem_lib.h>
 
 
+static const struct device *const console_dev = DEVICE_DT_GET(DT_CHOSEN(zephyr_console));
+static const struct device *const console_dev2 = DEVICE_DT_GET(DT_NODELABEL(uart2));		// Enable UART2 by using Power Management Subsystem
+
 // Start - ************************************ For Low Power ***********************************
 static const struct gpio_dt_spec sw0 = GPIO_DT_SPEC_GET(DT_ALIAS(sw0), gpios);
 static const struct gpio_dt_spec led0 = GPIO_DT_SPEC_GET(DT_ALIAS(led0), gpios);
@@ -27,7 +30,8 @@ static const struct gpio_dt_spec hold = GPIO_DT_SPEC_GET(DT_PATH(zephyr_user), h
 
 // Function definitions
 void setup_accel(void);
-int setup_gpio(void);
-int setup_uart();
+int8_t setup_gpio(void);
+int8_t setup_uart_DIS();
+int8_t setup_uart_ENA();
 
 #endif  /*APPLICATION_LOWPOWER_H_*/

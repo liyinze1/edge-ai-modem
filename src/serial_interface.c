@@ -1,3 +1,4 @@
+#include "enable_print.h"
 #include "serial_interface.h"
 #include "modem.h"
 
@@ -57,7 +58,6 @@ static void uart_cb(const struct device *dev, struct uart_event *evt,
 }
 
 
-
 void uart_init(void) {
     if (!device_is_ready(uart2_dev)) {
         LOG_ERR("UART device not found!");
@@ -98,6 +98,7 @@ void uart_send_cmd_suspendRAM(void) {
     }
 }
 
+
 /**
  *  Tells the RR “Please fall into power-down mode” 
  */
@@ -123,6 +124,10 @@ void uart_send_ack(void) {
 //     }
 // }
 
+/**
+ * @brief: check the the first byte sending from the RR to know if the coming data is "water depth" or "whole photo"
+ *         then send it and AsTAR parameter to the server
+ */
 void uart_process_rx(void) {
     LOG_INF("current offset %d, current length %d", uart_rx_offset, uart_rx_len);
     if (uart_rx_len >= 1) {
@@ -130,30 +135,49 @@ void uart_process_rx(void) {
         switch (uart_rx_buf[(uart_rx_offset + 0) % sizeof(uart_rx_buf)]) {
             
             case 'D':
-                LOG_INF("Received Depth");
-                modem_transmitData();
+                if ENABLE_PRINT
+                    LOG_INF("Received Depth");
+
+                modem_transmitData();         // Received UART data from RR
                 uart_send_ack();
+                
                 break;
 
             case 'P':
-                LOG_INF("Received Picture");
-                modem_transmitData();
+                if ENABLE_PRINT
+                    LOG_INF("Received Picture");
+                
+                modem_transmitData();         // Received UART data from RR
                 uart_send_ack();
                 break;
 
             case 'E':
-                LOG_INF("Received Ending message");
+                if ENABLE_PRINT
+                    LOG_INF("Received Ending message");
                 modem_transmitData();
-                k_sem_give(&uart_process_rx_done);
+                // k_sem_give(&uart_process_rx_done);
                 break;
 
             default:
-                LOG_ERR("Received unknown message type");
+                if ENABLE_PRINT
+                    LOG_ERR("Received unknown message type");
                 break;
         }
     }
 }
 
+
+
+/**
+ * @brief: UART Thread Function
+ */
+void thread_uartprocess (void) {
+    while (1) {
+        k_sem_take(&uart_data_ready, K_FOREVER);
+        uart_process_rx();
+        k_sem_give(&uart_process_rx_done);                  // Finished processing UART data
+    }
+}
 
 
 
@@ -163,24 +187,17 @@ void uart_process_rx(void) {
  * Do we need to spilit the whole picture data into small chunks? 
  */
 
-void send_astar_params(void)
-{
+// void send_astar_params(void)
+// {
+// }
 
-}
+// void send_depth(void)
+// {   
+// }
 
-
-void send_depth(void)
-{
-    
-}
-
-
-void Send_picture(void)
-{
-    
-}
-
-
+// void Send_picture(void)
+// {   
+// }
 // ---------------------------------------- E- Send Data to Cloud ------------------------------------
 
 

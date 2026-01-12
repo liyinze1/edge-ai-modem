@@ -1,4 +1,5 @@
 
+#include "enable_print.h"
 #include "modem.h"
 #include "serial_interface.h"
 
@@ -72,7 +73,7 @@ void rsrp_cb(char rsrp_value)
 void modem_transmitData_astar(uint16_t capMilliVolt, uint16_t sleepTime, 
 						uint16_t solarV, uint16_t reconnection_times) {
 	memset(txbuf, 0, TX_BUFFER_LEN_DEPTH_ASTAR);
-	txbuf[0] = 1;		// Header Byte
+	txbuf[0] = "r";		// Header Byte
 	// IMEI often have 15 digits (lengths)
 	memcpy(&txbuf[1], client_id_imei, 15);		
 	txbuf[16] = (capMilliVolt >> 8) & 0xFFu;
@@ -99,6 +100,8 @@ void modem_transmitData() {
     for (uint16_t i = 0; i < uart_rx_len; i++) {
         txbuf[i] = uart_rx_buf[(uart_rx_offset + i) % sizeof(uart_rx_buf)];
     }
+
+	txbuf_len = uart_rx_len;
 	modem_server_transmission_work_fn(NULL);
 }
 
