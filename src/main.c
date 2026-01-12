@@ -140,19 +140,8 @@ int main(void)
     //==========================================================================================================================#
     if ENABLE_PRINT 
       LOG_INF("Resume UART to be able to be waken up by the RR UART interrupt and receive UART data");
-
-    // Disable UART2 by using Power Management Subsystem
-    err2 = pm_device_action_run(console_dev2, PM_DEVICE_ACTION_RESUME);
-    if (err2 < 0)
-    {
-      LOG_ERR("Unable to resume console UART. (err: %d)\n", err2);
-    }
-
     setup_uart_ENA();
-
-
-      
-
+    setup_uart2_ENA()
 
     //==========================================================================================================================#
     // ToDo: nRF automatically enters sleep state during the interval RR infers ML                                              #
@@ -241,15 +230,8 @@ int main(void)
     //==============================================================================================#
     if ENABLE_PRINT
       LOG_INF("Suspend UART before sleep to save the energy during sleep interval");
-    
-    // Disable UART2 by using Power Management Subsystem
-    err2 = pm_device_action_run(console_dev2, PM_DEVICE_ACTION_SUSPEND);
-    if (err2 < 0)
-    {
-      LOG_INFO("Unable to suspend console UART. (err: %d)\n", err2);
-    }
-
-    setup_uart_DIS();
+    setup_uart2_DIS();    // Disable UART console
+    setup_uart_DIS();     // Disable UART console
 
     //==============================================================================================#
     // ToDo: Enter deep sleep                                                                       #
@@ -263,7 +245,6 @@ int main(void)
 
   return (0);
 }
-
 
 //======================================== S - Function Definitions ==========================================
 

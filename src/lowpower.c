@@ -35,7 +35,10 @@ int8_t setup_gpio(void)
 }
 
 
-// Disable UART
+//----------------------------------------------------------------------------------------------------#
+// Disable UART2 and UART console																	  #
+//----------------------------------------------------------------------------------------------------#
+// Disable UART console
 int8_t setup_uart_DIS()
 {
 	//static const struct device *const console_dev = DEVICE_DT_GET(DT_CHOSEN(zephyr_console));
@@ -53,16 +56,53 @@ int8_t setup_uart_DIS()
 	return 0;
 }
 
-// Enable UART
-int8_t setup_uart_ENA()
+// Disable UART2
+int8_t setup_uart2_DIS()
 {
 	//static const struct device *const console_dev = DEVICE_DT_GET(DT_CHOSEN(zephyr_console));
-	/* Enable console UART */
-	int8_t err = pm_device_action_run(console_dev, PM_DEVICE_ACTION_RESUME);
+	/* Disable console UART */
+	int8_t err = pm_device_action_run(console_dev2, PM_DEVICE_ACTION_SUSPEND);
 	if (err < 0)
 	{
-		LOG_ERR("Unable to enable console UART. (err: %d)\n", err);
+		LOG_ERR("Unable to suspend UART 2 (err: %d)\n", err);
 		return err;
 	}
+
+	return 0;
+}
+
+
+//----------------------------------------------------------------------------------------------------#
+// Enable UART2 and UART console																	  #
+//----------------------------------------------------------------------------------------------------#
+// Enable UART0
+int8_t setup_uart0_ENA()
+{
+	// Enable UART2 by using Power Management Subsystem  
+    err = pm_device_action_run(console_dev, PM_DEVICE_ACTION_RESUME);
+    if (err < 0)
+    {
+      LOG_ERR("Unable to RESUME console UART (err: %d)\n", err);
+	  return err;
+    }
+	return 0;
+}
+
+// Enable UART2
+int8_t setup_uart2_ENA()
+{
+	// static const struct device *const console_dev = DEVICE_DT_GET(DT_CHOSEN(zephyr_console));
+	// Enable UART2 by using Power Management Subsystem  
+    err = pm_device_action_run(console_dev2, PM_DEVICE_ACTION_RESUME);
+    if (err < 0)
+    {
+      LOG_ERR("Unable to RESUME UART2 (err: %d)\n", err);
+	  return err;
+    }
+  
+    // Enable UART2 by using Register Accesses
+      NRF_UARTE2_NS->TASKS_STARTTX = 1;
+      NRF_UARTE2_NS->TASKS_STARTRX = 1;
+      NRF_UARTE2_NS->ENABLE = 8;
 	return 0;
 }

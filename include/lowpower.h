@@ -31,7 +31,9 @@ static const struct gpio_dt_spec hold = GPIO_DT_SPEC_GET(DT_PATH(zephyr_user), h
 // Function definitions
 void setup_accel(void);
 int8_t setup_gpio(void);
-int8_t setup_uart_DIS();
-int8_t setup_uart_ENA();
+int8_t setup_uart_DIS();    // Disable UART console
+int8_t setup_uart2_DIS();   // Disable UART2
+int8_t setup_uart_ENA();    // Enable UART console
+int8_t setup_uart2_ENA();   // Enable UART2
 
 #endif  /*APPLICATION_LOWPOWER_H_*/
