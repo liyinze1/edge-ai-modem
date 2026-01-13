@@ -25,8 +25,8 @@ uint16_t read_Vcap_mv(void)
         .acquisition_time = ADC_ACQUISITION_TIME,
         .channel_id       = ADC_CHANNEL_ID,
         
-        // .input_positive   = ADC_CHANNEL_INPUT,
-        .differential     = 0,
+        .input_positive   = ADC_CHANNEL_INPUT,
+        // .differential     = 0,
     };
 
     if (adc_channel_setup(adc_dev, &channel_cfg)) {
