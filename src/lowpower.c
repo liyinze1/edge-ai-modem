@@ -1,12 +1,16 @@
 #include "enable_print.h"
 #include"lowpower.h"
 
+LOG_MODULE_REGISTER(lowpower);
+
+static int8_t err;
+
 void setup_accel(void)
 {
 	const struct device *sensor = DEVICE_DT_GET(DT_ALIAS(accel0));
 	if (!device_is_ready(sensor))
 	{
-		printk("Could not get accel0 device\n");
+		LOG_ERR("Could not get accel0 device\n");
 		return;
 	}
 	// Disable the device
@@ -19,7 +23,7 @@ void setup_accel(void)
 							 &odr);
 	if (rc != 0)
 	{
-		printk("Failed to set odr: %d\n", rc);
+		LOG_ERR("Failed to set odr: %d\n", rc);
 		return;
 	}
 }
@@ -39,11 +43,11 @@ int8_t setup_gpio(void)
 // Disable UART2 and UART console																	  #
 //----------------------------------------------------------------------------------------------------#
 // Disable UART console
-int8_t setup_uart_DIS()
+int8_t setup_uart0_DIS()
 {
 	//static const struct device *const console_dev = DEVICE_DT_GET(DT_CHOSEN(zephyr_console));
 	/* Disable console UART */
-	int8_t err = pm_device_action_run(console_dev, PM_DEVICE_ACTION_SUSPEND);
+	err = pm_device_action_run(console_dev, PM_DEVICE_ACTION_SUSPEND);
 	if (err < 0)
 	{
 		LOG_ERR("Unable to suspend console UART. (err: %d)\n", err);
@@ -61,7 +65,7 @@ int8_t setup_uart2_DIS()
 {
 	//static const struct device *const console_dev = DEVICE_DT_GET(DT_CHOSEN(zephyr_console));
 	/* Disable console UART */
-	int8_t err = pm_device_action_run(console_dev2, PM_DEVICE_ACTION_SUSPEND);
+	err = pm_device_action_run(console_dev2, PM_DEVICE_ACTION_SUSPEND);
 	if (err < 0)
 	{
 		LOG_ERR("Unable to suspend UART 2 (err: %d)\n", err);

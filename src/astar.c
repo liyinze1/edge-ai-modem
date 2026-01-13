@@ -1,8 +1,56 @@
-
 #include "astar_paras.h"
 #include "enable_print.h"
 #include "modem.h"
 #include "serial_interface.h"
+#include "read_vcap.h"
+#include "opencircuit.h"
+
+
+uint16_t newV = 0;
+uint16_t oldV = 0;
+int16_t deltaV = 0;                          // newV - oldV
+uint16_t  solarV = 0;;
+const uint16_t maxVoltage = 3000;
+const uint16_t shutOffVoltage = 900;
+const uint16_t OpenCircuitVoltage = 3000;
+uint32_t optimumV = 2800;
+uint16_t wakeupThreshold_V = 4000;          // solarV
+uint16_t sleepThreshold_V  = 3800;          // solarV
+uint16_t beginSleeping_Vcap = 0;            // Vcap once the node begins sleeping
+
+// in seconds
+uint32_t sleepTimer = 30;
+const uint16_t LowVolt_SleepTime = 7200;     
+const uint32_t maxRate = 120;
+const uint32_t minRate = 7200;
+
+// Variables are only dedicated to NightOptimisation algorithms
+const uint32_t nighttimeMaxRate = maxRate;
+const uint16_t daytimeOptimumV = 2800;
+uint16_t nighttimeVSwing = 0;
+bool nighttimeFlag = false;
+uint32_t nightDurationRollingEstimate =  48000;         // In seconds
+uint32_t timeSinceSunset  = 0;
+uint32_t timeSinceSunrise = 0;
+const uint16_t nightVLossTimeThreshold = 300;           // In seconds
+const uint16_t nightVRiseTimeThreshold = 300;           // In seconds
+const uint8_t weightingNewNightLength = 30;             // Percentage weighting for newly recorded night length to total night length
+
+// To set "sleep timer" When the node just wakes up/sleep
+bool first_wakeup_flag = false;                         
+bool first_sleep_flag = false;
+
+// Reconnect to the cellular network
+#define   MIN_RECONNECTION_INTERVAL   1200              // In seconds - Min. interval for re-establishing connection
+#define   MAX_RECONNECTION_INTERVAL   43200             // In seconds - Max. interval for re-establishing connection
+uint32_t  reconnection_interval       = 0;              // In seconds - The time interval between two consecutive reconnections
+uint8_t   failed_reconnection_times   = 0;              // The number of consecutive failed reconnections
+uint16_t  reconnection_times          = 0;
+
+
+LOG_MODULE_REGISTER(AsTAR_paras);
+
+K_SEM_DEFINE(my_semaphore_vcap, 1, 1);      // prevent a lot of threads from reading Vcap at the same time
 
 //------------------------------------------------------------------------------------
 /**
@@ -27,13 +75,13 @@ void reconnection_thread(void)
     else
     {
       if (ENABLE_PRINT)
-        printk("Connection is failed - Start reconnection steps ....! \n");
+        LOG_INF("Connection is failed - Start reconnection steps ....! \n");
       if (newV >= 4100)
         {
           reconnect_to_network();
           failed_reconnection_times = failed_reconnection_times + 1;
           if (ENABLE_PRINT)
-            printk(" The number of consecutive failed reconnection attempts: %d \n", failed_reconnection_times);
+            LOG_INF(" The number of consecutive failed reconnection attempts: %d \n", failed_reconnection_times);
         }
 
       if (failed_reconnection_times >= 4)
@@ -52,12 +100,12 @@ void reconnection_thread(void)
           if (reconnection_interval < MIN_RECONNECTION_INTERVAL) reconnection_interval = MIN_RECONNECTION_INTERVAL;
           if (reconnection_interval > MAX_RECONNECTION_INTERVAL) reconnection_interval = MAX_RECONNECTION_INTERVAL;
           if (ENABLE_PRINT)
-            printk(" Consecutive Re-connection Interval: %d \n", reconnection_interval);
+            LOG_INF(" Consecutive Re-connection Interval: %d \n", reconnection_interval);
           k_sleep(K_SECONDS(reconnection_interval));
         }
       }
       if (ENABLE_PRINT)
-        printk("\n ++++++++++++++++++ Escaped Re-connection Thread ++++++++++++++++++++\n\n\n");
+        LOG_INF("\n ++++++++++++++++++ Escaped Re-connection Thread ++++++++++++++++++++\n\n\n");
     }
   }
 }
@@ -73,13 +121,13 @@ void overV_protection_thread(void)
 {  
   while (1)
   {
-    if ENABLE_PRINT
-        printk("\n\n++++++++++++++++++ Entered OverVoltage Protection Thread ++++++++++++++++++++\n");
+    if (ENABLE_PRINT)
+        LOG_INF("\n\n++++++++++++++++++ Entered OverVoltage Protection Thread ++++++++++++++++++++\n");
     if (k_sem_take(&my_semaphore_vcap, K_SECONDS(5))==0)    // Prevent 2 or more threads reading V_cap at the same time
     {  
       if ((!nighttimeFlag) && (oldV>1500))
         { 
-          newV = get_cap_voltage();       // Read V_Caps
+          newV = read_Vcap_mv();       // Read V_Caps
           if (newV > OpenCircuitVoltage)
             isolate_solar();              // When V_caps is HIGH, solar pannels are isolated 
           else 
@@ -87,8 +135,8 @@ void overV_protection_thread(void)
         }
       k_sem_give(&my_semaphore_vcap);
     } else {
-        if ENABLE_PRINT
-            printk("Thread timed out waiting for my_semaphore_vcap.\n");
+        if (ENABLE_PRINT)
+            LOG_INF("Thread timed out waiting for my_semaphore_vcap.\n");
       }
 
 
@@ -111,12 +159,12 @@ void setSuspensionHandler(void) {
   // sleepTimer = 20; // For test
   oldV = newV;
   uart_send_cmd_powerdown();
-  if ENABLE_PRINT
+  if (ENABLE_PRINT)
     LOG_INF("Vcap is very low - power-down command <P> has sent to the RR");
   k_sleep(K_SECONDS(sleepTimer));
 }
 
-void Schedule(void) {
+uint32_t schedule(void) {
   uint32_t sleepDelta;
   deltaV = newV-oldV;
   // When wakes up?
@@ -228,4 +276,5 @@ void Schedule(void) {
   }
 
   // sleepTimer = 20;     // Test
+  return sleepTimer;
 }

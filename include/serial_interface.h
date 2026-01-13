@@ -10,6 +10,7 @@
 #include <zephyr/drivers/uart.h>
 #include <zephyr/logging/log.h>
 #include <zephyr/drivers/gpio.h>
+#include <zephyr/logging/log.h>
 
 
 #define UART_RX_TIMEOUT_US          2000

@@ -1,22 +1,8 @@
-#include <zephyr/kernel.h>
-#include <zephyr/device.h>
-#include <zephyr/drivers/adc.h>
-#include <zephyr/drivers/gpio.h>
-#include <zephyr/logging/log.h>
-#include <zephyr/sys/util.h>
-
 #include "enable_print.h"
 #include "read_vcap.h"
 
-// AIN1
-// ADC settings
-#define ADC_RESOLUTION         14
-#define ADC_GAIN               ADC_GAIN_1_6
-#define ADC_REFERENCE          ADC_REF_INTERNAL
-#define ADC_ACQUISITION_TIME   ADC_ACQ_TIME_DEFAULT
-#define ADC_CHANNEL_ID         1
-#define ADC_CHANNEL_INPUT SAADC_CH_PSELP_PSELP_AnalogInput1      // AIN1
-LOG_MODULE_REGISTER(read_solar, LOG_LEVEL_DBG);
+
+LOG_MODULE_REGISTER(read_Vcap);
 
 #define ADC_NODE DT_NODELABEL(adc)
 static const struct device *adc_dev = DEVICE_DT_GET(ADC_NODE);
@@ -25,7 +11,7 @@ static int16_t sample_buffer;
 
 int8_t Vcap_init(void) {
     if (!device_is_ready(adc_dev)) {
-        printk("ADC device not ready\n");
+        LOG_ERR("ADC device not ready\n");
         return -1;
     }
     return 0;
@@ -38,7 +24,9 @@ uint16_t read_Vcap_mv(void)
         .reference        = ADC_REFERENCE,
         .acquisition_time = ADC_ACQUISITION_TIME,
         .channel_id       = ADC_CHANNEL_ID,
-        .input_positive   = ADC_CHANNEL_INPUT,
+        
+        // .input_positive   = ADC_CHANNEL_INPUT,
+        .differential     = 0,
     };
 
     if (adc_channel_setup(adc_dev, &channel_cfg)) {

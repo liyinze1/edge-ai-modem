@@ -15,6 +15,7 @@
 #include <zephyr/kernel.h>
 #include <zephyr/sys/printk.h>
 #include <zephyr/sys/util.h>
+#include <zephyr/logging/log.h>
 
 
 // The number of ADC channels will be used ( = 1 means only AIN0 is ultilized)

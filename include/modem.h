@@ -10,6 +10,7 @@
 #include <nrf_modem_at.h>
 #include <modem/modem_info.h>
 #include <modem/nrf_modem_lib.h>
+#include <zephyr/logging/log.h>
 
 
 #define UDP_IP_HEADER_SIZE 28
@@ -21,6 +22,8 @@
 #define MSGTYPE_SURVEY_RESULT_UPLOAD    1 
 #define MSGTYPE_ACK                     5
 #define MSGTYPE_ACK_UPDATEREADY         6 
+
+extern uint16_t reconnection_times;
 
 // ----------------------- S - Preparing data for sending -----------------------
 // To send "IMEI + AsTAR++ parameters" to the server

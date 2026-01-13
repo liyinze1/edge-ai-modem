@@ -21,13 +21,12 @@ static char client_rsrp_val = 0;
 static uint8_t txbuf[2048] = {0}; // avoid RAM overflow
 static uint16_t txbuf_len;
 
-int8_t err;
+static int8_t err;
 char imei_buf[20 + sizeof("OK\r\n")];
 char rsrp_buf[10 + sizeof("OK\r\n")];
 
 bool is_connected = true;
 
-uint16_t reconnection_times = 0;
 K_SEM_DEFINE(lte_connected, 0, 1);
 void rsrp_cb(char rsrp_value)
 {
@@ -73,7 +72,7 @@ void rsrp_cb(char rsrp_value)
 void modem_transmitData_astar(uint16_t capMilliVolt, uint16_t sleepTime, 
 						uint16_t solarV, uint16_t reconnection_times) {
 	memset(txbuf, 0, TX_BUFFER_LEN_DEPTH_ASTAR);
-	txbuf[0] = "r";		// Header Byte
+	txbuf[0] = 'r';		// Header Byte
 	// IMEI often have 15 digits (lengths)
 	memcpy(&txbuf[1], client_id_imei, 15);		
 	txbuf[16] = (capMilliVolt >> 8) & 0xFFu;
@@ -145,7 +144,8 @@ void modem_main_init(void)
 		LOG_ERR("Unable to initialise modem info library, error: %d\n", err);
 	}
 
-    LOG_INF("Querying IMEI\n");
+	if (ENABLE_PRINT)
+    	LOG_INF("Querying IMEI\n");
 	/*err = nrf_modem_at_cmd(imei_buf, sizeof(imei_buf), "AT+CGSN");
 	if (err) {
 		LOG_INF("Not able to retrieve device IMEI from modem\n");
@@ -153,11 +153,13 @@ void modem_main_init(void)
 	}*/
 	modem_info_string_get(MODEM_INFO_IMEI, imei_buf, sizeof(imei_buf));
 	strncpy(client_id_imei, imei_buf, sizeof(client_id_imei) - 1);
-	LOG_INF("IMEI : %s\n", client_id_imei);
+	if (ENABLE_PRINT)
+		LOG_INF("IMEI : %s\n", client_id_imei);
 
 	modem_info_string_get(MODEM_INFO_RSRP, rsrp_buf, sizeof(rsrp_buf));
 	strncpy(client_rsrp, rsrp_buf, sizeof(client_rsrp) - 1);
-	LOG_INF("RSRP : %s\n", client_rsrp);
+	if (ENABLE_PRINT)
+		LOG_INF("RSRP : %s\n", client_rsrp);
 }
 
 
@@ -171,7 +173,8 @@ void modem_main_init(void)
 	{
 		int8_t err;
 
-		LOG_INF("Modem initialization...\n");
+		if (ENABLE_PRINT)
+			LOG_INF("Modem initialization...\n");
 
 		err = nrf_modem_lib_init();
 		if (err) {
@@ -270,7 +273,8 @@ void modem_main_init(void)
 				LOG_ERR ("Cannot register the network: is_connected =  false \n");
 				break;
 			}
-			LOG_INF("Network registration status: %s\n",
+			if (ENABLE_PRINT)
+				LOG_INF("Network registration status: %s\n",
 				evt->nw_reg_status == LTE_LC_NW_REG_REGISTERED_HOME ?
 				"Connected - home network" : "Connected - roaming\n");
 			
@@ -289,20 +293,23 @@ void modem_main_init(void)
 		       		"eDRX parameter update: eDRX: %f, PTW: %f\n",
 		       		evt->edrx_cfg.edrx, evt->edrx_cfg.ptw);
 			if (len > 0) {
-				LOG_INF("%s\n", log_buf);
+				if (ENABLE_PRINT)
+					LOG_INF("%s\n", log_buf);
 			}
 			break;
 		}
 		case LTE_LC_EVT_RRC_UPDATE:
-			LOG_INF("RRC mode: %s\n",
-				evt->rrc_mode == LTE_LC_RRC_MODE_CONNECTED ?
-				"Connected" : "Idle\n");
+			if (ENABLE_PRINT)
+				LOG_INF("RRC mode: %s\n",
+					evt->rrc_mode == LTE_LC_RRC_MODE_CONNECTED ?
+					"Connected" : "Idle\n");
 			if (evt->rrc_mode == LTE_LC_RRC_MODE_CONNECTED)
 				is_connected = true;
 			break;
 		case LTE_LC_EVT_CELL_UPDATE:
-			LOG_INF("LTE cell changed: Cell ID: %d, Tracking area: %d\n",
-	       		evt->cell.id, evt->cell.tac);
+			if (ENABLE_PRINT)
+				LOG_INF("LTE cell changed: Cell ID: %d, Tracking area: %d\n",
+	       			evt->cell.id, evt->cell.tac);
 			// Reconnect if the connection is lossed 
 			if (evt->cell.id == -1)
 			{
@@ -390,7 +397,8 @@ bool check_network_connection(void)
 int8_t reconnect_to_network(void)
 {
 	int8_t err4;
-	LOG_INF("************ Attempting to reconnect... **************** \n");
+	if (ENABLE_PRINT)
+		LOG_INF("************ Attempting to reconnect... **************** \n");
 	modem_modem_init();
 	err4 = modem_configure_low_power();
 		if (err4) {
@@ -399,12 +407,14 @@ int8_t reconnect_to_network(void)
 	reconnection_times = reconnection_times + 1;
 	modem_modem_connect(); 
 	if (k_sem_take(&lte_connected, K_SECONDS(60)) == 0) {
-		LOG_INF("Finished Re-initialize the modem\n");
+		if (ENABLE_PRINT)
+			LOG_INF("Finished Re-initialize the modem\n");
 		is_connected = true;
 	} 
 	else{ 
 		is_connected = false;
-		LOG_INF("cannot connect to eNode B in 60s!\n");
+		if (ENABLE_PRINT)
+			LOG_INF("cannot connect to eNode B in 60s!\n");
 	}
 
 	err4 = modem_info_init();
@@ -412,15 +422,18 @@ int8_t reconnect_to_network(void)
 		LOG_ERR("Unable to initialise modem info library, error: %d\n", err4);
 	}
 
-    LOG_INF("Querying IMEI\n");
+    if (ENABLE_PRINT)
+		LOG_INF("Querying IMEI\n");
 	modem_info_string_get(MODEM_INFO_IMEI, imei_buf, sizeof(imei_buf));
 	strncpy(client_id_imei, imei_buf, sizeof(client_id_imei) - 1);
-	LOG_INF("IMEI : %s\n", client_id_imei);
+	if (ENABLE_PRINT)
+		LOG_INF("IMEI : %s\n", client_id_imei);
 
 	//modem_info_rsrp_register(rsrp_cb);
 	modem_info_string_get(MODEM_INFO_RSRP, rsrp_buf, sizeof(rsrp_buf));
 	strncpy(client_rsrp, rsrp_buf, sizeof(client_rsrp) - 1);
-	LOG_INF("RSRP : %s\n", client_rsrp);
+	if (ENABLE_PRINT)
+		LOG_INF("RSRP : %s\n", client_rsrp);
 
 	err4 = modem_udp_init();
 	if (err4) {

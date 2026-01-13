@@ -1,5 +1,6 @@
 #include "enable_print.h"
 #include"read_solar.h"
+LOG_MODULE_REGISTER(read_solar);
 
 int32_t sample_buffer[ADC_NUM_CHANNELS];   			// Create buffer including n members to storage ADC_channels' raw value
 int32_t avg_reading[ADC_NUM_CHANNELS];            	// To hold average value of consecutive n-time readings
@@ -47,7 +48,8 @@ uint16_t read_adc(void)
 	const struct device *dev_adc = DEVICE_DT_GET(ADC_NODE);
 
 	if (!device_is_ready(dev_adc)) {
-		printk("ADC device not found\n");
+		if (ENABLE_PRINT)
+			LOG_INF("ADC device not found\n");
 		return 1;
 	}
 	sequence.channels = 0;
@@ -75,7 +77,7 @@ uint16_t read_adc(void)
 			err = adc_read(dev_adc, &sequence);   				// "&sequence": The sequence of READING and SAVING ADC raw values in the buffer
 			k_sleep(K_MSEC(10));				  								
 			if (err != 0) {
-				printk("ADC reading failed with error %d.\n", err);
+				LOG_ERR("ADC reading failed with error %d.\n", err);
 				return 1;
 			}
 			// Convert raw reading to millivolts
@@ -83,13 +85,15 @@ uint16_t read_adc(void)
 			if (((raw_value < 0) || (raw_value > 30000)))
 				raw_value = 0;
         	// printk("Channel %d: ", i);
-        	printk(" Raw %d: %d", i, raw_value);
+        	if (ENABLE_PRINT)
+				LOG_INF(" Raw %d: %d", i, raw_value);
         	if (adc_vref > 0) {
 				// Convert raw reading to millivolts if driver supports reading of ADC reference voltage
 				int32_t mv_value = raw_value;
 				adc_raw_to_millivolts(adc_vref, ADC_GAIN, ADC_RESOLUTION, &mv_value);
 				k_sleep(K_MSEC(10));
-				printk("     ~ Vpv[%d] = %d (mV) \n", m, mv_value);
+				if (ENABLE_PRINT)
+					LOG_INF("     ~ Vpv[%d] = %d (mV) \n", m, mv_value);
 				avg_reading[i] += mv_value;
 			}
         }
@@ -98,7 +102,7 @@ uint16_t read_adc(void)
 	// Get average  of consecutive 5-time readings
 	avg_reading[0] = avg_reading[0]/5;
 	// avg_reading[1] = avg_reading[1]/10;                  // Average Voltage of 2nd Channel - AIN1
-	// printk(" => V_AIN0 = %d mV  \n", avg_reading[0]);
-	// printk(" => V_AIN1 = %d mV  \n", avg_reading[1]);
+	// LOG_INF(" => V_AIN0 = %d mV  \n", avg_reading[0]);
+	// LOG_INF(" => V_AIN1 = %d mV  \n", avg_reading[1]);
 	return (uint16_t)avg_reading[0];
 }

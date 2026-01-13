@@ -10,6 +10,7 @@
 #include <zephyr/devicetree.h>
 #include <zephyr/drivers/gpio.h>
 #include <stdlib.h>                 // For Using "exit" function
+#include <zephyr/logging/log.h>
 
 
 int8_t check_gpio_sw2(void);

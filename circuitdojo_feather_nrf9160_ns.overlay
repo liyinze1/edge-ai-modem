@@ -5,27 +5,6 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-// Start- *************************** Overlay File for Digital Switches - S3 **************************
-/{  
-    Vu_Output_Pin1{
-		compatible = "gpio-leds";
-        label = "Output Pin to wake up RoadRunner";
-		D_OP1: outputpin1 {
-			// gpios = <&gpio0 4 (GPIO_PULL_DOWN | GPIO_ACTIVE_HIGH)>;
-            gpios = <&gpio0 14 (GPIO_PULL_UP | GPIO_ACTIVE_HIGH)>;
-			label = "Output Pin to wake up RoadRunner";
-		};
-    };
-    
-    aliases {
-        op1 = &D_OP1;
-    };
-};
-// End- *************************** Overlay File for Digital Switches - S3 **************************
-
-
-
-
 //*************************** Serial Interface - S **************************
 &uart2 {
     status = "okay";
@@ -42,11 +21,44 @@
 // *************************** Serial Interface - E *************************
 
 
-// *************************** S- Turn OFF DS isolating the solar panel when V > Vmax - S2 **************************
+//*************************** ADC Config. for READING Vpv - S **************************
+/ {
+	zephyr,user {
+		io-channels = <&adc 0>, <&adc 1>;
+	};
+};
+
+&adc {
+	#address-cells = <1>;
+	#size-cells = <0>;
+    
+	channel@0 {
+		reg = <0>;
+		zephyr,gain = "ADC_GAIN_1_6";
+		zephyr,reference = "ADC_REF_INTERNAL";
+		zephyr,acquisition-time = <ADC_ACQ_TIME_DEFAULT>;
+		zephyr,input-positive = <NRF_SAADC_AIN0>;
+		zephyr,resolution = <12>;
+	};
+
+	channel@1 {
+		reg = <1>;
+		zephyr,gain = "ADC_GAIN_1_6";
+		zephyr,reference = "ADC_REF_INTERNAL";
+		zephyr,acquisition-time = <ADC_ACQ_TIME_DEFAULT>;
+		zephyr,input-positive = <NRF_SAADC_AIN1>; // P0.04
+		zephyr,resolution = <12>;
+	};
+};
+
+//********************  ADC Config. for READING Vpv - E **********************
+
+
+//**************** Turn OFF DS isolating the solar panel when V > Vmax (S2) *****************
 /{    
     Vu_OpenCircuit{
 		compatible = "gpio-leds";
-        label = "Digital Switch for isolating solar Panelss when V > 5V";
+        label = "Digital Switch for isolating solar Panelss when V > Vmax";
 		OpenCircuit: switch_solar{
 			gpios = <&gpio0 22 (GPIO_PULL_UP | GPIO_ACTIVE_HIGH)>;
             label = "Digital Switch for isolating Solar panel";
@@ -57,10 +69,27 @@
         opencircuit = &OpenCircuit;
     };
 };
-// *************************** E- Turn OFF DS isolating the solar panel when V > Vmax - S2 **************************
+//***************** Turn OFF DS isolating the solar panel when V > Vmax (S2) - E ****************
 
+//*************************** Overlay File for Digital Switches (S3) - S **************************
+/{  
+    Vu_Output_Pin1{
+		compatible = "gpio-leds";
+        label = "Output Pin to wake up RoadRunner";
+		D_OP1: outputpin1 {
+			// gpios = <&gpio0 4 (GPIO_PULL_DOWN | GPIO_ACTIVE_HIGH)>;
+            gpios = <&gpio0 14 (GPIO_PULL_UP | GPIO_ACTIVE_HIGH)>;
+			label = "Output Pin to wake up RoadRunner";
+		};
+    };
+    
+    aliases {
+        op1 = &D_OP1;
+    };
+};
+//*************************** Overlay File for Digital Switches (S3) - E **************************
 
-// ************ S- Enable/Disable the divider of V_solar reading - S1 ************* 
+//********************* Enable/Disable the divider of V_solar reading (S1) - S ******************** 
 /{  
     Vu_Digital_Switches{
 		compatible = "gpio-leds";
@@ -75,12 +104,11 @@
         swdivider = &D_SW3;
     };
 };
-// ************ E- Enable/Disable the divider of V_solar reading - S1 *************
+//***************** Enable/Disable the divider of V_solar reading (S1) - E ******************
 
 
-
-// =========================================================================================================
-// Start - ******************** Overlay file for Ultra Low power for Circuit Dojo ********************
+//=================================================================================================
+//******************** Ultra Low power for Circuit Dojo - S ********************
 /{
     zephyr,user {
         latch-en-gpios = <&gpio0 31 GPIO_ACTIVE_HIGH>;
@@ -117,4 +145,4 @@
         t-exit-dpd = < 3500 >;
     };
 };
-// Stop - ******************** Overlay file for Ultra Low power for Circuit Dojo ********************
+// Stop - ******************** Ultra Low power for Circuit Dojo ********************

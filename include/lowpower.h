@@ -11,9 +11,11 @@
 #include <zephyr/drivers/gpio.h>
 #include <zephyr/drivers/uart.h>
 #include <zephyr/pm/device.h>
+#include <zephyr/logging/log.h>
 
 #include <modem/lte_lc.h>
 #include <modem/nrf_modem_lib.h>
+
 
 
 static const struct device *const console_dev = DEVICE_DT_GET(DT_CHOSEN(zephyr_console));
@@ -31,9 +33,8 @@ static const struct gpio_dt_spec hold = GPIO_DT_SPEC_GET(DT_PATH(zephyr_user), h
 // Function definitions
 void setup_accel(void);
 int8_t setup_gpio(void);
-int8_t setup_uart_DIS();    // Disable UART console
-int8_t setup_uart2_DIS();   // Disable UART2
-int8_t setup_uart_ENA();    // Enable UART console
-int8_t setup_uart2_ENA();   // Enable UART2
-
+int8_t setup_uart0_DIS();       // Disable UART console
+int8_t setup_uart2_DIS();       // Disable UART2
+int8_t setup_uart0_ENA();       // Enable UART console
+int8_t setup_uart2_ENA();       // Enable UART2
 #endif  /*APPLICATION_LOWPOWER_H_*/

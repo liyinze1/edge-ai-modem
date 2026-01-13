@@ -6,4 +6,5 @@ find_package(Zephyr REQUIRED HINTS $ENV{ZEPHYR_BASE})
 project(battery_free_AI)
 include_directories("include/")
 # target_sources(app PRIVATE src/main.c src/modem.c src/battery.c src/i2c_sensor4.c src/switch1.c src/lowpower.c src/opencircuit.c src/switch_divider.c src/read_solar.c)
-target_sources(app PRIVATE src/main.c src/roadruner_wakeup.c src/lowpower.c src/serial_interface.c src/nrf_wakeup.c src/modem.c)
+target_sources(app PRIVATE src/main.c src/astar.c src/lowpower.c src/modem.c src/nrf_wakeup.c src/opencircuit.c 
+                            src/read_solar.c src/read_vcap.c src/roadruner_wakeup.c src/serial_interface.c src/switch_Vpv_divider.c)

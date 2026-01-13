@@ -10,6 +10,7 @@
 #include <zephyr/devicetree.h>
 #include <zephyr/drivers/gpio.h>
 #include <stdlib.h>
+#include <zephyr/logging/log.h>
 
 
 // FUNCTION DEFINITIONS 
