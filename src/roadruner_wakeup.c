@@ -30,16 +30,17 @@ void runner_reset_wakeup(void){
 /**
  * @brief: Drive the RoadRunner wakeup pin LOW to wake it up.
  */
-// void runner_set_wakeup(void){
-//     gpio_pin_set_dt(&dev_op1,0);
-//     k_sleep(K_MSEC(500));
-//     gpio_pin_set_dt(&dev_op1,1);
-// }
-
 void runner_set_wakeup(void){
-    gpio_pin_set_dt(&dev_op1,1);
+    gpio_pin_set_dt(&dev_op1,0);
     LOG_INF("turn on the switch for wake up!");
     k_sleep(K_MSEC(500));
-    gpio_pin_set_dt(&dev_op1,0);
+    gpio_pin_set_dt(&dev_op1,1);
 }
+
+// void runner_set_wakeup(void){
+//     gpio_pin_set_dt(&dev_op1,1);
+//     LOG_INF("turn on the switch for wake up!");
+//     k_sleep(K_MSEC(500));
+//     gpio_pin_set_dt(&dev_op1,0);
+// }
 
