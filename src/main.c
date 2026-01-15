@@ -134,6 +134,7 @@ int main(void)
   rerun_astar_after_suspension:
     k_sem_take(&my_semaphore_vcap, K_FOREVER);
     newV = read_Vcap_mv();
+    LOG_INF(" - Vcap = %d mV", newV);
     k_sem_give(&my_semaphore_vcap);
     if (newV <= shutOffVoltage) { 
       setSuspensionHandler();
