@@ -32,14 +32,22 @@ void runner_reset_wakeup(void){
  */
 void runner_set_wakeup(void){
     gpio_pin_set_dt(&dev_op1,0);
+<<<<<<< HEAD
     if ENABLE_PRINT
         LOG_INF("Drived GPIO down to Wake up RoadRunner");
+=======
+    LOG_INF("turn on the switch for wake up!");
+>>>>>>> 9471d3cf82ea04b93f853aad3db01a98b1cf8555
     k_sleep(K_MSEC(500));
     gpio_pin_set_dt(&dev_op1,1);
 }
 
 // void runner_set_wakeup(void){
 //     gpio_pin_set_dt(&dev_op1,1);
+<<<<<<< HEAD
+=======
+//     LOG_INF("turn on the switch for wake up!");
+>>>>>>> 9471d3cf82ea04b93f853aad3db01a98b1cf8555
 //     k_sleep(K_MSEC(500));
 //     gpio_pin_set_dt(&dev_op1,0);
 // }
