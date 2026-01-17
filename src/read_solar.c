@@ -48,8 +48,7 @@ uint16_t read_adc(void)
 	const struct device *dev_adc = DEVICE_DT_GET(ADC_NODE);
 
 	if (!device_is_ready(dev_adc)) {
-		if (ENABLE_PRINT)
-			LOG_INF("ADC device not found\n");
+			LOG_ERR("ADC device not found\n");
 		return 1;
 	}
 	sequence.channels = 0;
@@ -85,14 +84,14 @@ uint16_t read_adc(void)
 			if (((raw_value < 0) || (raw_value > 30000)))
 				raw_value = 0;
         	// printk("Channel %d: ", i);
-        	if (ENABLE_PRINT)
+        	if ENABLE_PRINT
 				LOG_INF(" Raw %d: %d", i, raw_value);
         	if (adc_vref > 0) {
 				// Convert raw reading to millivolts if driver supports reading of ADC reference voltage
 				int32_t mv_value = raw_value;
 				adc_raw_to_millivolts(adc_vref, ADC_GAIN, ADC_RESOLUTION, &mv_value);
 				k_sleep(K_MSEC(10));
-				if (ENABLE_PRINT)
+				if ENABLE_PRINT
 					LOG_INF("     ~ Vpv[%d] = %d (mV) \n", m, mv_value);
 				avg_reading[i] += mv_value;
 			}

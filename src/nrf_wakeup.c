@@ -10,13 +10,11 @@ static struct gpio_callback wakein_cb_data;
 
 // GPIO Interrupt Callback
 void static wakein_cb(const struct device *dev, struct gpio_callback *cb, uint32_t pins) {
-    if (ENABLE_PRINT)
+    if ENABLE_PRINT
         LOG_INF("The nRF received Wake input signal from the RoadRunner and ready to receive the UART message");
     // ToDo: RESUME UART here
     uart_send_ready();          // Send "A" to RR to notify “I am awake and ready to communicate”
 }
-
-
 
 
 //===================================================================================================
@@ -40,7 +38,7 @@ int8_t nrf_wakeup_init(void) {
     gpio_init_callback(&wakein_cb_data, wakein_cb, BIT(dev_wake_in.pin));
 	gpio_add_callback(dev_wake_in.port, &wakein_cb_data);
 
-    if (ENABLE_PRINT)
+    if ENABLE_PRINT
         LOG_INF("nRF wake-up initialized successfully");
     return 0;
 }

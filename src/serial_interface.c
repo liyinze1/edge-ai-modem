@@ -49,7 +49,7 @@ static void uart_cb(const struct device *dev, struct uart_event *evt,
             break;
 
         case UART_RX_STOPPED:
-            if (ENABLE_PRINT)
+            if ENABLE_PRINT
                 LOG_INF("UART_RX_STOPPED, reason: %u", evt->data.rx_stop.reason);
             break;
 
@@ -73,7 +73,7 @@ void uart_init(void) {
         LOG_ERR("Couldn't assign UART buffer");
         return;
     }
-    if (ENABLE_PRINT)
+    if ENABLE_PRINT
         LOG_INF("UART init successfully");
 }
 
@@ -137,7 +137,7 @@ void uart_process_rx(void) {
         switch (uart_rx_buf[(uart_rx_offset + 0) % sizeof(uart_rx_buf)]) {
             
             case 'D':
-                if (ENABLE_PRINT)
+                if ENABLE_PRINT
                     LOG_INF("Received Depth");
 
                 modem_transmitData();         // Received UART data from RR
@@ -146,7 +146,7 @@ void uart_process_rx(void) {
                 break;
 
             case 'P':
-                if (ENABLE_PRINT)
+                if ENABLE_PRINT
                     LOG_INF("Received Picture");
                 
                 modem_transmitData();         // Received UART data from RR
@@ -154,14 +154,14 @@ void uart_process_rx(void) {
                 break;
 
             case 'E':
-                if (ENABLE_PRINT)
+                if ENABLE_PRINT
                     LOG_INF("Received Ending message");
                 modem_transmitData();
                 // k_sem_give(&uart_process_rx_done);
                 break;
 
             default:
-                if (ENABLE_PRINT)
+                if ENABLE_PRINT
                     LOG_ERR("Received unknown message type");
                 break;
         }

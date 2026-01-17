@@ -35,14 +35,6 @@ LOG_MODULE_REGISTER(main);
 
 // K_SEM_DEFINE(my_semaphore_vcap, 1, 1);    // prevent a lot of threads from reading Vcap at the same time
 
-// // Declare GLOBAL variables
-// uint16_t  newV                  = 0;
-// uint16_t  solarV                = 0;
-// const uint16_t  maxVoltage      = 3000;
-// uint32_t  sleepTimer            = 30;
-
-// uint16_t  reconnection_times    = 0;
-
 uint8_t waterLevel_tx_len;
 uint16_t waterLevel_tx_buf[2];
 uint16_t waterlevel_tx;
@@ -58,6 +50,9 @@ K_THREAD_DEFINE(thread_uartprocess_id, UART_STACKSIZE, thread_uartprocess, NULL,
 	THREAD_UARTPROCESS_PRIORITY, 0, 0);
 // -------------------------------------- E- UART THREAD ---------------------------------
 
+
+
+
 //----------------------------------------------------------------------------------------
 // ++++++++++++++++++++++ S- Re-connection THREAD ++++++++++++++++++++++++
 //----------------------------------------------------------------------------------------
@@ -67,6 +62,7 @@ K_THREAD_DEFINE(thread_uartprocess_id, UART_STACKSIZE, thread_uartprocess, NULL,
 K_THREAD_DEFINE(ReConn_id, RECONN_STACK_SIZE, reconnection_thread, NULL, NULL, NULL,
 		            RECONN_PRIORITY, 0, 0);
 // ---------------------- E- Re-connection THREAD -----------------------------------------
+
 
 //----------------------------------------------------------------------------------------
 //++++++++++++++++++++++ Caps Overvoltage Protection THREAD ++++++++++++++++++++++++
@@ -81,30 +77,43 @@ K_THREAD_DEFINE(over_v_id, OVER_V_STACK_SIZE, overV_protection_thread, NULL, NUL
 
 int main(void)
 {
-  if (ENABLE_PRINT)
-    LOG_INF("Starting...");
+  if ENABLE_PRINT
+    LOG_INF("Entering main function .....");
   
   // Power Management
   setup_gpio();			
 	setup_accel();
 	// setup_uart();      // Suspend UART2
 
+
+
+  // Wake RoadRunner up
+  ret = runner_wakeup_int();
+  if(ret){
+		if ENABLE_PRINT
+      LOG_INF("RR wakeup - Fail to retrieving GPIO waking RoadRunner up");
+		exit(1);
+	}
+
+
+
   // Open circuit
-	ret = check_gpio_sw2(); 
+	ret = check_gpio_sw2();
 	if(ret){
-		if (ENABLE_PRINT)
-      LOG_INF("Open Circuit - Fail to retrieving GPIO for Switch 2 from DTs");
+      LOG_ERR("Open Circuit - Fail to retrieving GPIO controlling the digital switch from DTs");
 		exit(1);
 	}
 
   // Vpv divider
 	ret = check_gpio_div_sw3();
 	if(ret){
-		if (ENABLE_PRINT)
-      LOG_INF("Vpv Divider - Fail to retrieving GPIO for Switch 3 from DTs");
+      LOG_ERR("Vpv Divider - Fail to retrieving GPIO for controlling the digital switch from DTs");
 		exit(1);
 	}
   turn_off_div_sw3();	     // Disable Vpv divider to save energy during the connection time
+
+  
+  
 
   // Initialize + Configurate modem
 	modem_main_init();    
@@ -113,7 +122,9 @@ int main(void)
   // Send start up notification (discarded at server)
   modem_transmitData_astar(0xFFFFu, 0xFFFFu, 0xFFFFu, 0xFFFFu);
 
-  if (ENABLE_PRINT)
+
+
+  if ENABLE_PRINT
     LOG_INF("Wake up RR to start working");
   runner_set_wakeup();                  // Wake RoadRunner up using GPIO interrupt
   uart_init();
@@ -143,7 +154,7 @@ int main(void)
     //==========================================================================================================================#
     // ToDo: Resume nRF UART so that the nRF is able to be waken up by the RR's UART interrupt and receive its UART message     #
     //==========================================================================================================================#
-    if (ENABLE_PRINT) 
+    if ENABLE_PRINT 
       LOG_INF("Resume UART to be able to be waken up by the RR UART interrupt and receive UART data");
     setup_uart0_ENA();
     setup_uart2_ENA();
@@ -153,7 +164,7 @@ int main(void)
     //       The nRF waits until the RR has finished the ML inference and then wake the nRF up                                  #
     //            by sending the waterlevel/photo data via UART to the nRF                                                      #
     //==========================================================================================================================#
-    if (ENABLE_PRINT)
+    if ENABLE_PRINT
       LOG_INF("nRF sleeps until the RR finishes its ML inference and then wake nRF up by sending UART waterlevel/photo data to it ... \n");
     // To make MCU automatically fall into sleep during the interval waiting for "k_sem_give(&uart_data_ready)" being called
     k_sem_take(&uart_data_ready, K_FOREVER);
@@ -171,7 +182,7 @@ int main(void)
     //==================================================================================================================#
     //------------------------ S- Connection Attemps -----------------------
     reconnection_times = reconnection_numbers();
-    if (ENABLE_PRINT)
+    if ENABLE_PRINT
     {
       LOG_INF("\n\nThe total number of re-connections to the eNodeB: %d \n", (reconnection_times));
       LOG_INF("Check Current Network Status: Is_Connected = %d \n", check_network_connection());
@@ -190,12 +201,12 @@ int main(void)
     else 
       connect_solar();
 
-    if (ENABLE_PRINT)
+    if ENABLE_PRINT
       LOG_INF(" - Voltage of Solar Panels - AIN0 = %d mV\n\n", solarV);
     //-------------------------- E - Read V_solar --------------------------
     
     // Run AsTAR Scheduler - case 2 when Vcap > Vshutoff
-    if (ENABLE_PRINT)
+    if ENABLE_PRINT
       LOG_INF("Run AsTAR++ when Vcap > Vshutoff");
     sleepTimer = schedule();
 
@@ -211,7 +222,7 @@ int main(void)
     //      + if interval < 30m => Suspend-to-RAM Mode                                                                          #
     //      + if interval >=30m => Powerdown Mode                                                                               #
     //==========================================================================================================================#
-    if (ENABLE_PRINT)
+    if ENABLE_PRINT
     {
       LOG_INF("Calcualted Sleep interval: %d (s)", sleepTimer);
       LOG_INF("Based on the calculated sleep interval => to send sleeping-mode command to the RR");
@@ -219,20 +230,20 @@ int main(void)
     if (sleepTimer < 1800)
     {
       uart_send_cmd_suspendRAM();
-      if (ENABLE_PRINT)
+      if ENABLE_PRINT
         LOG_INF("suspend-to RAM command <S> has sent to the RR");
     }
     else
     { 
       uart_send_cmd_powerdown();
-      if (ENABLE_PRINT)
+      if ENABLE_PRINT
         LOG_INF("power-down command <P> has sent to the RR");
     }
 
     //==============================================================================================#
     // ToDo: Suspend UART before sleep to save the energy during sleep interval                     #
     //==============================================================================================#
-    if (ENABLE_PRINT)
+    if ENABLE_PRINT
       LOG_INF("Suspend UART before sleep to save the energy during sleep interval");
     setup_uart2_DIS();    // Disable UART console
     setup_uart0_DIS();     // Disable UART console
@@ -240,7 +251,7 @@ int main(void)
     //==============================================================================================#
     // ToDo: Enter deep sleep                                                                       #
     //==============================================================================================#
-    if (ENABLE_PRINT)
+    if ENABLE_PRINT
       LOG_INF("The nRF sleeping for %d (s)", sleepTimer);
     LOG_INF(" ----------------------------------------------------------------------------------------------------");
     k_sleep(K_SECONDS(sleepTimer));

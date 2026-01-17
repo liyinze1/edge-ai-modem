@@ -9,12 +9,12 @@ LOG_MODULE_REGISTER(switch_Vpv_divider);
 static const struct gpio_dt_spec sw_div  = GPIO_DT_SPEC_GET(SW_DIV, gpios);
 int8_t check_gpio_div_sw3(void){
     if (!device_is_ready(sw_div.port)) {
-        LOG_ERR("GPIO initialization for Digital SW is not successful!");
+        LOG_ERR("Vpv Divider - GPIO initialization for controlling the digital Switch is not successful!");
         return (1);
     }
     ret_SW3 = gpio_pin_configure_dt(&sw_div, GPIO_OUTPUT_ACTIVE);
     if (ret_SW3 < 0) {
-        LOG_ERR("Pin Configuration for Digital SW is not successful!");
+        LOG_ERR("Vpv Divider - Pin Configuration for Controlling the digital switch is not successful!");
         return (1);
     }
     return 0;
