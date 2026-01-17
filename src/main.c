@@ -53,15 +53,15 @@ K_THREAD_DEFINE(thread_uartprocess_id, UART_STACKSIZE, thread_uartprocess, NULL,
 
 
 
-//----------------------------------------------------------------------------------------
-// ++++++++++++++++++++++ S- Re-connection THREAD ++++++++++++++++++++++++
-//----------------------------------------------------------------------------------------
-#define RECONN_STACK_SIZE  4096
-#define RECONN_PRIORITY 5
-// void reconnection_thread(void);
-K_THREAD_DEFINE(ReConn_id, RECONN_STACK_SIZE, reconnection_thread, NULL, NULL, NULL,
-		            RECONN_PRIORITY, 0, 0);
-// ---------------------- E- Re-connection THREAD -----------------------------------------
+// //----------------------------------------------------------------------------------------
+// // ++++++++++++++++++++++ S- Re-connection THREAD ++++++++++++++++++++++++
+// //----------------------------------------------------------------------------------------
+// #define RECONN_STACK_SIZE  4096
+// #define RECONN_PRIORITY 5
+// // void reconnection_thread(void);
+// K_THREAD_DEFINE(ReConn_id, RECONN_STACK_SIZE, reconnection_thread, NULL, NULL, NULL,
+// 		            RECONN_PRIORITY, 0, 0);
+// // ---------------------- E- Re-connection THREAD -----------------------------------------
 
 
 //----------------------------------------------------------------------------------------
@@ -115,12 +115,12 @@ int main(void)
   
   
 
-  // Initialize + Configurate modem
-	modem_main_init();    
-  k_sleep(K_SECONDS(1));
+  // // Initialize + Configurate modem
+	// modem_main_init();    
+  // k_sleep(K_SECONDS(1));
 
-  // Send start up notification (discarded at server)
-  modem_transmitData_astar(0xFFFFu, 0xFFFFu, 0xFFFFu, 0xFFFFu);
+  // // Send start up notification (discarded at server)
+  // modem_transmitData_astar(0xFFFFu, 0xFFFFu, 0xFFFFu, 0xFFFFu);
 
 
 
