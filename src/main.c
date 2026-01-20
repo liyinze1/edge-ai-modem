@@ -122,19 +122,23 @@ int main(void)
   // Send start up notification (discarded at server)
   modem_transmitData_astar(0xFFFFu, 0xFFFFu, 0xFFFFu, 0xFFFFu);
 
-
-
-  if ENABLE_PRINT
-    LOG_INF("Wake up RR to start working");
-  runner_set_wakeup();                  // Wake RoadRunner up using GPIO interrupt
   uart_init();
   
   while (1)
   {
-  
+
+
+    // Just for testing, please comment it out when deploy the BEAVER
+    // k_sleep(K_SECONDS(10));
+
+
+
+
   //========================================================================================# 
   // Todo: Wake up RR                                                                       #
   //========================================================================================#
+  if ENABLE_PRINT
+    LOG_INF("Wake up RR to start working");
   runner_set_wakeup();
 
   //==========================================================================================================#
@@ -255,8 +259,15 @@ int main(void)
     if ENABLE_PRINT
       LOG_INF("The nRF sleeping for %d (s)", sleepTimer);
     LOG_INF(" ----------------------------------------------------------------------------------------------------");
-    k_sleep(K_SECONDS(sleepTimer));
 
+
+
+    // Just for testing, please comment it out when deploying the BEAVER
+    // sleepTimer = 60;
+
+
+
+    k_sleep(K_SECONDS(sleepTimer));
   }
 
   return (0);
