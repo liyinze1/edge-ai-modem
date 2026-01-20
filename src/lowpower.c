@@ -10,7 +10,7 @@ void setup_accel(void)
 	const struct device *sensor = DEVICE_DT_GET(DT_ALIAS(accel0));
 	if (!device_is_ready(sensor))
 	{
-		LOG_ERR("Could not get accel0 device\n");
+		LOG_ERR("Could not get accel0 device");
 		return;
 	}
 	// Disable the device
@@ -23,7 +23,7 @@ void setup_accel(void)
 							 &odr);
 	if (rc != 0)
 	{
-		LOG_ERR("Failed to set odr: %d\n", rc);
+		LOG_ERR("Failed to set odr: %d", rc);
 		return;
 	}
 }
@@ -50,7 +50,7 @@ int8_t setup_uart0_DIS()
 	err = pm_device_action_run(console_dev, PM_DEVICE_ACTION_SUSPEND);
 	if (err < 0)
 	{
-		LOG_ERR("Unable to suspend console UART. (err: %d)\n", err);
+		LOG_ERR("Unable to suspend console UART. (err: %d)", err);
 		return err;
 	}
 
@@ -68,7 +68,7 @@ int8_t setup_uart2_DIS()
 	err = pm_device_action_run(console_dev2, PM_DEVICE_ACTION_SUSPEND);
 	if (err < 0)
 	{
-		LOG_ERR("Unable to suspend UART 2 (err: %d)\n", err);
+		LOG_ERR("Unable to suspend UART 2 (err: %d)", err);
 		return err;
 	}
 
@@ -86,7 +86,7 @@ int8_t setup_uart0_ENA()
     err = pm_device_action_run(console_dev, PM_DEVICE_ACTION_RESUME);
     if (err < 0)
     {
-      LOG_ERR("Unable to RESUME console UART (err: %d)\n", err);
+      LOG_ERR("Unable to RESUME console UART (err: %d)", err);
 	  return err;
     }
 	return 0;
@@ -100,7 +100,7 @@ int8_t setup_uart2_ENA()
     err = pm_device_action_run(console_dev2, PM_DEVICE_ACTION_RESUME);
     if (err < 0)
     {
-      LOG_ERR("Unable to RESUME UART2 (err: %d)\n", err);
+      LOG_ERR("Unable to RESUME UART2 (err: %d)", err);
 	  return err;
     }
   

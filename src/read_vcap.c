@@ -11,7 +11,7 @@ static int16_t sample_buffer;
 
 int8_t Vcap_init(void) {
     if (!device_is_ready(adc_dev)) {
-        LOG_ERR("ADC device not ready\n");
+        LOG_ERR("ADC device not ready");
         return -1;
     }
     return 0;

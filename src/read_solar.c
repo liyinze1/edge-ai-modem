@@ -48,7 +48,7 @@ uint16_t read_adc(void)
 	const struct device *dev_adc = DEVICE_DT_GET(ADC_NODE);
 
 	if (!device_is_ready(dev_adc)) {
-			LOG_ERR("ADC device not found\n");
+			LOG_ERR("ADC device not found");
 		return 1;
 	}
 	sequence.channels = 0;
@@ -65,7 +65,8 @@ uint16_t read_adc(void)
 	int32_t adc_vref = adc_ref_internal(dev_adc);           // Read ADC internal Vref
 	k_sleep(K_MSEC(5));
 
-    printk("Start reading V_Solar_Pannels:\n");
+	if ENABLE_PRINT
+    	LOG_INF("Start reading V_Solar_Pannels:");
 	memset(avg_reading, 0, sizeof(avg_reading));			// Reset the buffer for the next reading					
     for (uint8_t i = 0; i < ADC_NUM_CHANNELS; i++) {
 		avg_reading[i] = 0;
@@ -76,7 +77,7 @@ uint16_t read_adc(void)
 			err = adc_read(dev_adc, &sequence);   				// "&sequence": The sequence of READING and SAVING ADC raw values in the buffer
 			k_sleep(K_MSEC(10));				  								
 			if (err != 0) {
-				LOG_ERR("ADC reading failed with error %d.\n", err);
+				LOG_ERR("ADC reading failed with error %d", err);
 				return 1;
 			}
 			// Convert raw reading to millivolts
@@ -92,7 +93,7 @@ uint16_t read_adc(void)
 				adc_raw_to_millivolts(adc_vref, ADC_GAIN, ADC_RESOLUTION, &mv_value);
 				k_sleep(K_MSEC(10));
 				if ENABLE_PRINT
-					LOG_INF("     ~ Vpv[%d] = %d (mV) \n", m, mv_value);
+					LOG_INF("     ~ Vpv[%d] = %d (mV) ", m, mv_value);
 				avg_reading[i] += mv_value;
 			}
         }
@@ -101,7 +102,10 @@ uint16_t read_adc(void)
 	// Get average  of consecutive 5-time readings
 	avg_reading[0] = avg_reading[0]/5;
 	// avg_reading[1] = avg_reading[1]/10;                  // Average Voltage of 2nd Channel - AIN1
-	// LOG_INF(" => V_AIN0 = %d mV  \n", avg_reading[0]);
-	// LOG_INF(" => V_AIN1 = %d mV  \n", avg_reading[1]);
+	// if ENABLE_PRINT
+	// {
+		// LOG_INF(" => V_AIN0 = %d mV", avg_reading[0]);
+		// LOG_INF(" => V_AIN1 = %d mV", avg_reading[1]);
+	// }
 	return (uint16_t)avg_reading[0];
 }

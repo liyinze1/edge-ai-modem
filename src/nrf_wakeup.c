@@ -26,7 +26,7 @@ int8_t nrf_wakeup_init(void) {
 
     // Configures the wake-in pin to generate an interrupt on rising edge.
     if (gpio_pin_interrupt_configure_dt(&dev_wake_in, GPIO_INT_EDGE_RISING)) {
-        LOG_ERR("Failed to configure interrupt on %s pin %d\n",
+        LOG_ERR("Failed to configure interrupt on %s pin %d",
 			dev_wake_in.port->name, dev_wake_in.pin);
 		return 1;
     }

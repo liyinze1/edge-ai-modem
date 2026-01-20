@@ -116,7 +116,7 @@ int main(void)
   
 
   // Initialize + Configurate modem
-	modem_main_init();    
+	modem_main_init();
   k_sleep(K_SECONDS(1));
 
   // Send start up notification (discarded at server)
@@ -170,7 +170,7 @@ int main(void)
     //            by sending the waterlevel/photo data via UART to the nRF                                                      #
     //==========================================================================================================================#
     if ENABLE_PRINT
-      LOG_INF("nRF sleeps until the RR finishes its ML inference and then wake nRF up by sending UART waterlevel/photo data to it ... \n");
+      LOG_INF("nRF sleeps until the RR finishes its ML inference and then wake nRF up by sending UART waterlevel/photo data to it ...");
     // To make MCU automatically fall into sleep during the interval waiting for "k_sem_give(&uart_data_ready)" being called
     k_sem_take(&uart_data_ready, K_FOREVER);
     
@@ -189,8 +189,8 @@ int main(void)
     reconnection_times = reconnection_numbers();
     if ENABLE_PRINT
     {
-      LOG_INF("\n\nThe total number of re-connections to the eNodeB: %d \n", (reconnection_times));
-      LOG_INF("Check Current Network Status: Is_Connected = %d \n", check_network_connection());
+      LOG_INF("The total number of re-connections to the eNodeB: %d", (reconnection_times));
+      LOG_INF("Check Current Network Status: Is_Connected = %d", check_network_connection());
     }
     //----------------------- E- Connection Attemps -------------------------
 
@@ -207,7 +207,7 @@ int main(void)
       connect_solar();
 
     if ENABLE_PRINT
-      LOG_INF(" - Voltage of Solar Panels - AIN0 = %d mV\n\n", solarV);
+      LOG_INF(" - Voltage of Solar Panels - AIN0 = %d mV", solarV);
     //-------------------------- E - Read V_solar --------------------------
     
     // Run AsTAR Scheduler - case 2 when Vcap > Vshutoff
@@ -256,16 +256,18 @@ int main(void)
     //==============================================================================================#
     // ToDo: Enter deep sleep                                                                       #
     //==============================================================================================#
-    if ENABLE_PRINT
-      LOG_INF("The nRF sleeping for %d (s)", sleepTimer);
-    LOG_INF(" ----------------------------------------------------------------------------------------------------");
-
-
-
     // Just for testing, please comment it out when deploying the BEAVER
     // sleepTimer = 60;
 
 
+
+
+
+    if ENABLE_PRINT
+    {
+      LOG_INF("The nRF sleeping for %d (s)", sleepTimer);
+      LOG_INF(" ----------------------------------------------------------------------------------------------------");
+    }
 
     k_sleep(K_SECONDS(sleepTimer));
   }

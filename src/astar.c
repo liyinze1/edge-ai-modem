@@ -75,13 +75,13 @@ void reconnection_thread(void)
     else
     {
       if ENABLE_PRINT
-        LOG_INF("Connection is failed - Start reconnection steps ....! \n");
+        LOG_INF("Connection is failed - Start reconnection steps ....!");
       if (newV >= 4100)
         {
           reconnect_to_network();
           failed_reconnection_times = failed_reconnection_times + 1;
           if ENABLE_PRINT
-            LOG_INF(" The number of consecutive failed reconnection attempts: %d \n", failed_reconnection_times);
+            LOG_INF(" The number of consecutive failed reconnection attempts: %d", failed_reconnection_times);
         }
 
       if (failed_reconnection_times >= 4)
@@ -100,12 +100,12 @@ void reconnection_thread(void)
           if (reconnection_interval < MIN_RECONNECTION_INTERVAL) reconnection_interval = MIN_RECONNECTION_INTERVAL;
           if (reconnection_interval > MAX_RECONNECTION_INTERVAL) reconnection_interval = MAX_RECONNECTION_INTERVAL;
           if ENABLE_PRINT
-            LOG_INF(" Consecutive Re-connection Interval: %d \n", reconnection_interval);
+            LOG_INF("Consecutive Re-connection Interval: %d", reconnection_interval);
           k_sleep(K_SECONDS(reconnection_interval));
         }
       }
       if ENABLE_PRINT
-        LOG_INF("\n ++++++++++++++++++ Escaped Re-connection Thread ++++++++++++++++++++\n\n\n");
+        LOG_INF("++++++++++++++++ Escaped Re-connection Thread ++++++++++++++");
     }
   }
 }
@@ -122,7 +122,7 @@ void overV_protection_thread(void)
   while (1)
   {
     if ENABLE_PRINT
-        LOG_INF("\n\n++++++++++++++++++ Entered OverVoltage Protection Thread ++++++++++++++++++++\n");
+        LOG_INF("++++++++++++++ Entered OverVcap Protection Thread ++++++++++++++");
     if (k_sem_take(&my_semaphore_vcap, K_SECONDS(5))==0)    // Prevent 2 or more threads reading V_cap at the same time
     {  
       if ((!nighttimeFlag) && (oldV>1500))
@@ -136,7 +136,7 @@ void overV_protection_thread(void)
       k_sem_give(&my_semaphore_vcap);
     } else {
         if ENABLE_PRINT
-            LOG_INF("Thread timed out waiting for my_semaphore_vcap.\n");
+            LOG_INF("Thread timed out waiting for my_semaphore_vcap");
       }
 
 
