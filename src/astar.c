@@ -8,17 +8,17 @@
 
 uint16_t newV = 0;
 uint16_t oldV = 0;
-int16_t deltaV = 0;                          // newV - oldV
+int16_t deltaV = 0;
 uint16_t  solarV = 0;;
 const uint16_t maxVoltage = 3000;
 const uint16_t shutOffVoltage = 900;
 const uint16_t OpenCircuitVoltage = 3000;
 uint32_t optimumV = 2800;
-uint16_t wakeupThreshold_V = 4000;          // solarV
-uint16_t sleepThreshold_V  = 3800;          // solarV
+uint16_t wakeupThreshold_Vpv = 4000;
+uint16_t sleepThreshold_Vpv  = 3800;
 uint16_t beginSleeping_Vcap = 0;            // Vcap once the node begins sleeping
 
-// in seconds
+// In seconds
 uint32_t sleepTimer = 30;
 const uint16_t LowVolt_SleepTime = 7200;     
 const uint32_t maxRate = 120;
@@ -48,7 +48,7 @@ uint8_t   failed_reconnection_times   = 0;              // The number of consecu
 uint16_t  reconnection_times          = 0;
 
 
-LOG_MODULE_REGISTER(AsTAR_paras);
+LOG_MODULE_REGISTER(AsTAR);
 
 K_SEM_DEFINE(my_semaphore_vcap, 1, 1);      // prevent a lot of threads from reading Vcap at the same time
 
@@ -104,9 +104,9 @@ void reconnection_thread(void)
           k_sleep(K_SECONDS(reconnection_interval));
         }
       }
-      if ENABLE_PRINT
-        LOG_INF("++++++++++++++++ Escaped Re-connection Thread ++++++++++++++");
     }
+    if ENABLE_PRINT
+        LOG_INF("++++++++++++++++ Escaped Re-connection Thread ++++++++++++++");
   }
 }
 
@@ -143,7 +143,10 @@ void overV_protection_thread(void)
     if(nighttimeFlag)
       k_sleep(K_SECONDS(1800));          // In seconds - Not check the connection continously to save energy
     else 
-      k_sleep(K_SECONDS(300));           // In seconds - Not check the connection continously to save energy
+      k_sleep(K_SECONDS(600));           // In seconds - Not check the connection continously to save energy
+    
+    if ENABLE_PRINT
+        LOG_INF("+++++++++++++ Escaped OverVcap Protection Thread ++++++++++++++");
   }
 }
 
@@ -169,7 +172,7 @@ uint32_t schedule(void) {
   deltaV = newV-oldV;
   // When wakes up?
   if (nighttimeFlag) {
-    if (solarV >= wakeupThreshold_V)
+    if (solarV >= wakeupThreshold_Vpv)
       timeSinceSunrise +=sleepTimer;
     else timeSinceSunrise = 0;
     if(timeSinceSunrise >= nightVRiseTimeThreshold)
@@ -185,7 +188,7 @@ uint32_t schedule(void) {
   } 
 
   // When sleeps?
-  if (solarV < sleepThreshold_V){
+  if (solarV < sleepThreshold_Vpv){
     timeSinceSunset += sleepTimer;
     if (timeSinceSunset >= nightVLossTimeThreshold) {
       if (!nighttimeFlag) 
@@ -261,20 +264,21 @@ uint32_t schedule(void) {
   //--------------------------------------------------------------------------------------------------
   // Set constant Sleep_Timer when the node just wakes up and just sleeps
   //--------------------------------------------------------------------------------------------------
-   // When the node just wakes up, the "Sleep_timer" is very high => this can help mitagate this
+   // Can help when the node just wakes up, the "Sleep_timer" is very long
   if (first_wakeup_flag)
   {
     sleepTimer = 450;
     first_wakeup_flag = false;
   }
 
-  // When the node just sleep in early morning, the "Sleep_timer" may be very high => this can help mitagate this
+  // Can help when the node just sleep, the "Sleep_timer" may be very long
   if (first_sleep_flag)
   {
     sleepTimer = 200;
     first_sleep_flag = false;
   }
 
-  // sleepTimer = 20;     // Test
+  if ENABLE_PRINT
+    LOG_INF("Finished run the AsTAR scheduler - Sleeptimer = ", sleepTimer);
   return sleepTimer;
 }

@@ -68,7 +68,7 @@ K_THREAD_DEFINE(ReConn_id, RECONN_STACK_SIZE, reconnection_thread, NULL, NULL, N
 //++++++++++++++++++++++ Caps Overvoltage Protection THREAD ++++++++++++++++++++++++
 //----------------------------------------------------------------------------------------
 #define OVER_V_STACK_SIZE 512
-#define OVER_V_PRIORITY 1
+#define OVER_V_PRIORITY 4
 // void overV_protection_thread(void);
 K_THREAD_DEFINE(over_v_id, OVER_V_STACK_SIZE, overV_protection_thread, NULL, NULL, NULL,
 	              OVER_V_PRIORITY, 0, 0);
@@ -122,17 +122,17 @@ int main(void)
   // Send start up notification (discarded at server)
   modem_transmitData_astar(0xFFFFu, 0xFFFFu, 0xFFFFu, 0xFFFFu);
 
+
+
+
+
+  // To make sure that the RoadRunner UART already initialized before the nRF UART is initialized
+  k_sleep(K_SECONDS(5));
   uart_init();
-  
+
+
   while (1)
   {
-
-
-    // Just for testing, please comment it out when deploy the BEAVER
-    // k_sleep(K_SECONDS(10));
-
-
-
 
   //========================================================================================# 
   // Todo: Wake up RR                                                                       #
@@ -149,7 +149,7 @@ int main(void)
   rerun_astar_after_suspension:
     k_sem_take(&my_semaphore_vcap, K_FOREVER);
     newV = read_Vcap_mv();
-    LOG_INF(" - Vcap = %d mV", newV);
+    LOG_INF("The supercapacitor Voltage - Vcap = %d mV", newV);
     k_sem_give(&my_semaphore_vcap);
     if (newV <= shutOffVoltage) { 
       setSuspensionHandler();
@@ -161,6 +161,7 @@ int main(void)
     //==========================================================================================================================#
     if ENABLE_PRINT 
       LOG_INF("Resume UART to be able to be waken up by the RR UART interrupt and receive UART data");
+    // uart_init();
     setup_uart0_ENA();
     setup_uart2_ENA();
 
@@ -207,18 +208,30 @@ int main(void)
       connect_solar();
 
     if ENABLE_PRINT
-      LOG_INF(" - Voltage of Solar Panels - AIN0 = %d mV", solarV);
+      LOG_INF("Voltage of Solar Panels - Vpv = %d mV", solarV);
     //-------------------------- E - Read V_solar --------------------------
     
     // Run AsTAR Scheduler - case 2 when Vcap > Vshutoff
     if ENABLE_PRINT
-      LOG_INF("Run AsTAR++ when Vcap > Vshutoff");
+      LOG_INF("Run AsTAR scheduler when Vcap > Vshutoff");
     sleepTimer = schedule();
 
     // Send AsTAR paras to the server
       // Only do this after receiving UART data and send it to the serser 
     k_sem_take(&uart_process_rx_done, K_FOREVER);
-    modem_transmitData_astar(newV, sleepTimer, solarV, reconnection_times);
+
+
+
+
+
+
+    // Comment out for testing without Cellular network, please uncomment it when deploying the BEAVER
+    // modem_transmitData_astar(newV, sleepTimer, solarV, reconnection_times);
+
+
+
+
+
     //======================================= E- AsTAR++ scheduler - Case 2 =====================================
 
     //==========================================================================================================================#
@@ -251,11 +264,15 @@ int main(void)
     if ENABLE_PRINT
       LOG_INF("Suspend UART before sleep to save the energy during sleep interval");
     setup_uart2_DIS();    // Disable UART console
-    setup_uart0_DIS();     // Disable UART console
+    setup_uart0_DIS();    // Disable UART console
 
     //==============================================================================================#
     // ToDo: Enter deep sleep                                                                       #
     //==============================================================================================#
+    
+    
+    
+    
     // Just for testing, please comment it out when deploying the BEAVER
     // sleepTimer = 60;
 
@@ -274,5 +291,3 @@ int main(void)
 
   return (0);
 }
-
-//======================================== S - Function Definitions ==========================================

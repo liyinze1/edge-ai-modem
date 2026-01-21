@@ -35,36 +35,6 @@ void rsrp_cb(char rsrp_value)
 }
 
 // - ------------------- Formated Data + Send - S ----------------------
-
-// void modem_transmitData(uint16_t capMilliVolt, uint16_t sleepTime, uint16_t Distance_Data, 
-// 						uint16_t solarV, uint16_t reconnection_times, uint16_t *lidar_reading_buff) {
-// 	memset(txbuf, 0, TX_BUFFER_LEN);
-// 	memcpy(&txbuf[0], client_id_imei, 15);		// Copy 15 bytes of data from client_id_imei to the txbuf buffer
-// 												// IMEI often have 15 digits (lengths)
-// 	txbuf[15] = (capMilliVolt >> 8) & 0xFFu;
-// 	txbuf[16] = capMilliVolt & 0xFFu;
-// 	txbuf[17] = (sleepTime >> 8) & 0xFFu;
-// 	txbuf[18] = sleepTime & 0xFFu;
-// 	txbuf[19] = (Distance_Data >> 8) & 0xFFu;
-// 	txbuf[20] = Distance_Data & 0xFFu;
-// 	txbuf[21] = (solarV >> 8) & 0xFFu;
-// 	txbuf[22] = solarV & 0xFFu;
-// 	txbuf[23] = (reconnection_times >> 8) & 0xFFu;
-// 	txbuf[24] = reconnection_times & 0xFFu;
-
-// 	// Insert lidar_reading_buff[100] data into the sent buffer
-//     uint16_t offset = 25;
-//     for (uint16_t i = 0; i < RAW_READING_NUMBERS; i++) {
-//         txbuf[offset++] = (lidar_reading_buff[i] >> 8) & 0xFFu; // High byte
-//         txbuf[offset++] = lidar_reading_buff[i] & 0xFFu;        // Low byte
-//     }
-
-// 	txbuf_len = TX_BUFFER_LEN;
-//     modem_server_transmission_work_fn(NULL);
-
-// }
-
-
 /**
  * @bried: To send "IMEI + AsTAR++ parameters" to the server
  * 			+ Header Byte: = 1
@@ -87,7 +57,6 @@ void modem_transmitData_astar(uint16_t capMilliVolt, uint16_t sleepTime,
 	txbuf_len = TX_BUFFER_LEN_DEPTH_ASTAR;
     modem_server_transmission_work_fn(NULL);
 }
-
 
 
 /**
@@ -315,7 +284,7 @@ void modem_main_init(void)
 			if (evt->cell.id == -1)
 			{
 				is_connected = false;
-				LOG_ERR ("++ Cannot find CELL ID. is_connected = false!");
+				LOG_ERR ("Cannot find CELL ID. is_connected = false!");
 			}
 			break;
 
@@ -399,7 +368,7 @@ int8_t reconnect_to_network(void)
 {
 	int8_t err4;
 	if ENABLE_PRINT
-		LOG_INF("************ Attempting to reconnect... ****************");
+		LOG_INF("Attempting to reconnect to the cellular network...");
 	modem_modem_init();
 	err4 = modem_configure_low_power();
 		if (err4) {

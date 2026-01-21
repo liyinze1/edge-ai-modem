@@ -34,7 +34,6 @@ void runner_set_wakeup(void){
     gpio_pin_set_dt(&dev_op1,0);
     if ENABLE_PRINT
         LOG_INF("Drived GPIO down to Wake up RoadRunner");
-    LOG_INF("turn on the switch for wake up!");
     k_sleep(K_MSEC(500));
     gpio_pin_set_dt(&dev_op1,1);
 }

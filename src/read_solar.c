@@ -66,7 +66,7 @@ uint16_t read_adc(void)
 	k_sleep(K_MSEC(5));
 
 	if ENABLE_PRINT
-    	LOG_INF("Start reading V_Solar_Pannels:");
+    	LOG_INF("Start reading V_Solar_Pannels...");
 	memset(avg_reading, 0, sizeof(avg_reading));			// Reset the buffer for the next reading					
     for (uint8_t i = 0; i < ADC_NUM_CHANNELS; i++) {
 		avg_reading[i] = 0;
@@ -85,15 +85,15 @@ uint16_t read_adc(void)
 			if (((raw_value < 0) || (raw_value > 30000)))
 				raw_value = 0;
         	// printk("Channel %d: ", i);
-        	if ENABLE_PRINT
-				LOG_INF(" Raw %d: %d", i, raw_value);
+        	// if ENABLE_PRINT
+				// LOG_INF(" Raw %d: %d", i, raw_value);
         	if (adc_vref > 0) {
 				// Convert raw reading to millivolts if driver supports reading of ADC reference voltage
 				int32_t mv_value = raw_value;
 				adc_raw_to_millivolts(adc_vref, ADC_GAIN, ADC_RESOLUTION, &mv_value);
 				k_sleep(K_MSEC(10));
-				if ENABLE_PRINT
-					LOG_INF("     ~ Vpv[%d] = %d (mV) ", m, mv_value);
+				// if ENABLE_PRINT
+				// 	LOG_INF("~ Vpv[%d] = %d (mV) ", m, mv_value);
 				avg_reading[i] += mv_value;
 			}
         }

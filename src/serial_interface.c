@@ -12,7 +12,7 @@ LOG_MODULE_REGISTER(serial_interface);
 // static volatile uint16_t uart_rx_len;
 // static volatile uint16_t uart_rx_offset;
 
-K_SEM_DEFINE(uart_data_ready, 0, 1);          // RX Data is received well 
+K_SEM_DEFINE(uart_data_ready, 0, 1);          // RX Data is received well
 K_SEM_DEFINE(uart_process_rx_done, 0, 1);     // Finished processing UART RX data
 
 
@@ -21,7 +21,8 @@ static void uart_cb(const struct device *dev, struct uart_event *evt,
              void *user_data) {
     switch (evt->type) {
         case UART_TX_DONE:
-            // LOG_INF("UART_TX_DONE");
+            if ENABLE_PRINT
+                LOG_INF("UART_TX_DONE");
             break;
 
         case UART_TX_ABORTED:
@@ -31,7 +32,8 @@ static void uart_cb(const struct device *dev, struct uart_event *evt,
         case UART_RX_RDY:
             uart_rx_len = evt->data.rx.len;
             uart_rx_offset = evt->data.rx.offset;
-            uart_rx_disable(uart2_dev);                 // Received enough bytes => stop listening for new incoming data
+            // uart_rx_disable(uart2_dev);                 // Received enough bytes => stop listening for new incoming data
+            uart_rx_disable(dev);                 // Received enough bytes => stop listening for new incoming data
 			k_sem_give(&uart_data_ready);               // Allow the <uart_process_rx()> to be executed to handle incoming data in another Functions
             break;
 
@@ -42,7 +44,11 @@ static void uart_cb(const struct device *dev, struct uart_event *evt,
             break;
 
         case UART_RX_DISABLED:  // RX stopped, re-enables with uart_rx_enable
-            if (uart_rx_enable(uart2_dev, (uint8_t *)uart_rx_buf, sizeof(uart_rx_buf),
+            // if (uart_rx_enable(uart2_dev, (uint8_t *)uart_rx_buf, sizeof(uart_rx_buf),
+            //                    UART_RX_TIMEOUT_US)) {
+            //     LOG_ERR("Couldn't assign UART buffer");
+            // }
+            if (uart_rx_enable(dev, (uint8_t *)uart_rx_buf, sizeof(uart_rx_buf),
                                UART_RX_TIMEOUT_US)) {
                 LOG_ERR("Couldn't assign UART buffer");
             }
@@ -128,7 +134,9 @@ void uart_send_ack(void) {
 
 /**
  * @brief: check the the first byte sending from the RR to know if the coming data is "water depth" or "whole photo"
- *         then send it and AsTAR parameter to the server
+ *         so that the nRF can forward the data to the server properly
+ *         + The nRF modem only forwards the received RR UART data to the server without processing the data to save energy
+ *         + All UART data proceesing is executed on the server side
  */
 void uart_process_rx(void) {
     LOG_INF("current offset %d, current length %d", uart_rx_offset, uart_rx_len);
@@ -157,7 +165,9 @@ void uart_process_rx(void) {
                 if ENABLE_PRINT
                     LOG_INF("Received Ending message");
                 modem_transmitData();
-                // k_sem_give(&uart_process_rx_done);
+                
+                k_sem_give(&uart_process_rx_done);
+                // uart_send_ack();
                 break;
 
             default:
@@ -180,33 +190,6 @@ void thread_uartprocess (void) {
         k_sem_give(&uart_process_rx_done);                  // Finished processing UART data
     }
 }
-
-
-
-// ---------------------------------------- S- Send Data to Cloud ------------------------------------
-/**
- * How can the server distinguish between Depth, Picture or AsTAR Data type?
- * Do we need to spilit the whole picture data into small chunks? 
- */
-
-// void send_astar_params(void)
-// {
-// }
-
-// void send_depth(void)
-// {   
-// }
-
-// void Send_picture(void)
-// {   
-// }
-// ---------------------------------------- E- Send Data to Cloud ------------------------------------
-
-
-
-
-
-
 
 
 
