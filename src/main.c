@@ -116,17 +116,17 @@ int main(void)
   
 
   // Initialize + Configurate modem
-	modem_main_init();
-  k_sleep(K_SECONDS(1));
+	// modem_main_init();
+  // k_sleep(K_SECONDS(1));
 
   // Send start up notification (discarded at server)
-  modem_transmitData_astar(0xFFFFu, 0xFFFFu, 0xFFFFu, 0xFFFFu);
+  // modem_transmitData_astar(0xFFFFu, 0xFFFFu, 0xFFFFu, 0xFFFFu);
 
 
 
 
 
-  // To make sure that the RoadRunner UART already initialized before the nRF UART is initialized
+  // To make sure that the RoadRunner UART is initialized before the nRF's
   k_sleep(K_SECONDS(5));
   uart_init();
 
@@ -149,42 +149,27 @@ int main(void)
   rerun_astar_after_suspension:
     k_sem_take(&my_semaphore_vcap, K_FOREVER);
     newV = read_Vcap_mv();
-    LOG_INF("The supercapacitor Voltage - Vcap = %d mV", newV);
+    if ENABLE_PRINT
+      LOG_INF("The supercapacitor Voltage - Vcap = %d mV", newV);
     k_sem_give(&my_semaphore_vcap);
     if (newV <= shutOffVoltage) { 
       setSuspensionHandler();
       goto rerun_astar_after_suspension;
     }
     
+    
     //==========================================================================================================================#
     // ToDo: Resume nRF UART so that the nRF is able to be waken up by the RR's UART interrupt and receive its UART message     #
     //==========================================================================================================================#
     if ENABLE_PRINT 
       LOG_INF("Resume UART to be able to be waken up by the RR UART interrupt and receive UART data");
-    // uart_init();
-    setup_uart0_ENA();
-    setup_uart2_ENA();
-
-    //==========================================================================================================================#
-    // ToDo: nRF automatically enters sleep state during the interval RR infers ML                                              #
-    //       The nRF waits until the RR has finished the ML inference and then wake the nRF up                                  #
-    //            by sending the waterlevel/photo data via UART to the nRF                                                      #
-    //==========================================================================================================================#
-    if ENABLE_PRINT
-      LOG_INF("nRF sleeps until the RR finishes its ML inference and then wake nRF up by sending UART waterlevel/photo data to it ...");
-    // To make MCU automatically fall into sleep during the interval waiting for "k_sem_give(&uart_data_ready)" being called
-    k_sem_take(&uart_data_ready, K_FOREVER);
-    
-    
-    //=======================================================================================================================#
-    // Todo: Once the UART data (waterlevel/photo) is available on nRF "k_sem_take(&uart_data_ready, K_FOREVER)", nRF sends  #
-    //        the UART data to the server - executed in "serial_interface.c"                                                 #  
-    //=======================================================================================================================#
+    // // uart_init();
+    // setup_uart0_ENA();
+    // setup_uart2_ENA();
 
     
     //==================================================================================================================#
-    // Todo: AsTAR++ scheduler (case 2 when Vcap > Vshutoff) => then Send its parameter to the server                   #
-    //          only do this after receiving UART data  and send it to the serser                                       #
+    // Todo: Execute AsTAR++ scheduler (case 2 when Vcap > Vshutoff)                                                    #
     //==================================================================================================================#
     //------------------------ S- Connection Attemps -----------------------
     reconnection_times = reconnection_numbers();
@@ -216,11 +201,20 @@ int main(void)
       LOG_INF("Run AsTAR scheduler when Vcap > Vshutoff");
     sleepTimer = schedule();
 
-    // Send AsTAR paras to the server
-      // Only do this after receiving UART data and send it to the serser 
-    k_sem_take(&uart_process_rx_done, K_FOREVER);
 
+    // =======================================================================================================================#
+    // Todo: Once the UART data (waterlevel/photo) is sent to nRF - "k_sem_give(&uart_data_ready, K_FOREVER)", nRF sends      #
+    //        the UART data to the server - executed in "serial_interface.c"                                                  #  
+    // =======================================================================================================================#
 
+    //============================================================================================================================================#
+    // ToDo: nRF automatically enters sleep state during the interval RR infers ML                                                                #
+    //       + The nRF waits and sleeps until RR has finished the ML inference by using k_sem_take(&uart_process_rx_done, K_FOREVER);             #
+    //           and then nRF is waken up by RR when RR send the UART waterlevel/photo data to after RR finishs its ML execution                  #    
+    //============================================================================================================================================#
+    if ENABLE_PRINT
+      LOG_INF("nRF sleeps until the RR finishes its ML inference, and then RR wakes nRF up by sending UART waterlevel/photo data to it ...");
+    k_sem_take(&uart_process_rx_done, K_FOREVER);   // Help nRF only send AsTAR paras to the server after receiving, processing and sending UART data to the server
 
 
 
@@ -230,12 +224,8 @@ int main(void)
 
 
 
-
-
-    //======================================= E- AsTAR++ scheduler - Case 2 =====================================
-
     //==========================================================================================================================#
-    // Todo: Specify the RR's sleeping mode                                                                                     #
+    // Todo: Specify RR's sleeping mode                                                                                         #
     //    According to the sleep interval specified by AsTAR, the nRF transmits the corresponding sleep-mode command to the RR. #
     //      + if interval < 30m => Suspend-to-RAM Mode                                                                          #
     //      + if interval >=30m => Powerdown Mode                                                                               #
@@ -263,18 +253,18 @@ int main(void)
     //==============================================================================================#
     if ENABLE_PRINT
       LOG_INF("Suspend UART before sleep to save the energy during sleep interval");
-    setup_uart2_DIS();    // Disable UART console
-    setup_uart0_DIS();    // Disable UART console
+    // setup_uart2_DIS();    // Disable UART console
+    // setup_uart0_DIS();    // Disable UART console
+
+
+
+
 
     //==============================================================================================#
     // ToDo: Enter deep sleep                                                                       #
     //==============================================================================================#
-    
-    
-    
-    
     // Just for testing, please comment it out when deploying the BEAVER
-    // sleepTimer = 60;
+    sleepTimer = 60;
 
 
 

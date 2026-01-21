@@ -106,7 +106,7 @@ void reconnection_thread(void)
       }
     }
     if ENABLE_PRINT
-        LOG_INF("++++++++++++++++ Escaped Re-connection Thread ++++++++++++++");
+        LOG_INF("+++++ Escaped Re-connection Thread +++++");
   }
 }
 
@@ -122,7 +122,7 @@ void overV_protection_thread(void)
   while (1)
   {
     if ENABLE_PRINT
-        LOG_INF("++++++++++++++ Entered OverVcap Protection Thread ++++++++++++++");
+        LOG_INF("+++++ Entered OverVcap Protection Thread +++++");
     if (k_sem_take(&my_semaphore_vcap, K_SECONDS(5))==0)    // Prevent 2 or more threads reading V_cap at the same time
     {  
       if ((!nighttimeFlag) && (oldV>1500))
@@ -146,7 +146,7 @@ void overV_protection_thread(void)
       k_sleep(K_SECONDS(600));           // In seconds - Not check the connection continously to save energy
     
     if ENABLE_PRINT
-        LOG_INF("+++++++++++++ Escaped OverVcap Protection Thread ++++++++++++++");
+        LOG_INF("+++++++ Escaped OverVcap Protection Thread ++++++++");
   }
 }
 
@@ -279,6 +279,6 @@ uint32_t schedule(void) {
   }
 
   if ENABLE_PRINT
-    LOG_INF("Finished run the AsTAR scheduler - Sleeptimer = ", sleepTimer);
+    LOG_INF("Finished run the AsTAR scheduler - Sleeptimer = %d (s) ", sleepTimer);
   return sleepTimer;
 }

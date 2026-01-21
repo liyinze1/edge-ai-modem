@@ -32,9 +32,11 @@ static void uart_cb(const struct device *dev, struct uart_event *evt,
         case UART_RX_RDY:
             uart_rx_len = evt->data.rx.len;
             uart_rx_offset = evt->data.rx.offset;
-            // uart_rx_disable(uart2_dev);                 // Received enough bytes => stop listening for new incoming data
-            uart_rx_disable(dev);                 // Received enough bytes => stop listening for new incoming data
+            
 			k_sem_give(&uart_data_ready);               // Allow the <uart_process_rx()> to be executed to handle incoming data in another Functions
+            
+            // uart_rx_disable(uart2_dev);                 // Received enough bytes => stop listening for new incoming data
+            uart_rx_disable(dev);                       // Received enough bytes => stop listening for new incoming data
             break;
 
         case UART_RX_BUF_REQUEST:
@@ -43,7 +45,8 @@ static void uart_cb(const struct device *dev, struct uart_event *evt,
         case UART_RX_BUF_RELEASED:
             break;
 
-        case UART_RX_DISABLED:  // RX stopped, re-enables with uart_rx_enable
+        case UART_RX_DISABLED:
+            
             // if (uart_rx_enable(uart2_dev, (uint8_t *)uart_rx_buf, sizeof(uart_rx_buf),
             //                    UART_RX_TIMEOUT_US)) {
             //     LOG_ERR("Couldn't assign UART buffer");
@@ -55,8 +58,8 @@ static void uart_cb(const struct device *dev, struct uart_event *evt,
             break;
 
         case UART_RX_STOPPED:
-            if ENABLE_PRINT
-                LOG_INF("UART_RX_STOPPED, reason: %u", evt->data.rx_stop.reason);
+                LOG_ERR("UART_RX_STOPPED, reason: %u", evt->data.rx_stop.reason);
+                uart_rx_disable(dev);
             break;
 
         default:
@@ -139,7 +142,8 @@ void uart_send_ack(void) {
  *         + All UART data proceesing is executed on the server side
  */
 void uart_process_rx(void) {
-    LOG_INF("current offset %d, current length %d", uart_rx_offset, uart_rx_len);
+    if ENABLE_PRINT
+        LOG_INF("current offset: %d, current UART data length: %d Bytes", uart_rx_offset, uart_rx_len);
     if (uart_rx_len >= 1) {
 
         switch (uart_rx_buf[(uart_rx_offset + 0) % sizeof(uart_rx_buf)]) {
@@ -148,16 +152,22 @@ void uart_process_rx(void) {
                 if ENABLE_PRINT
                     LOG_INF("Received Depth");
 
-                modem_transmitData();         // Received UART data from RR
+
+                // modem_transmitData();         // Received UART data from RR
+                
+                
                 uart_send_ack();
                 
                 break;
 
             case 'P':
                 if ENABLE_PRINT
-                    LOG_INF("Received Picture");
-                
-                modem_transmitData();         // Received UART data from RR
+                    LOG_INF("Received photo");
+
+                    
+                // modem_transmitData();         // Received UART data from RR
+
+
                 uart_send_ack();
                 break;
 
@@ -185,9 +195,14 @@ void uart_process_rx(void) {
  */
 void thread_uartprocess (void) {
     while (1) {
+        if ENABLE_PRINT
+            LOG_INF("+++++ Entered UART processing THREAD +++++");
         k_sem_take(&uart_data_ready, K_FOREVER);
+        if ENABLE_PRINT
+            LOG_INF("The RoadRunner UART depth/photo came. Start processing it and then sending it to the server");
         uart_process_rx();
-        k_sem_give(&uart_process_rx_done);                  // Finished processing UART data
+        if ENABLE_PRINT
+            LOG_INF("+++++ Escaped UART processing THREAD +++++");
     }
 }
 
