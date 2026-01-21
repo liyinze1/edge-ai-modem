@@ -245,7 +245,7 @@ int main(void)
       LOG_INF("Calcualted Sleep interval: %d (s)", sleepTimer);
       LOG_INF("Based on the calculated sleep interval => to send sleeping-mode command to the RR");
     }
-    if (sleepTimer < 1800)
+    if (sleepTimer < 839)
     {
       uart_send_cmd_suspendRAM();
       if ENABLE_PRINT
