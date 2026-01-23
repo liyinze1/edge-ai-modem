@@ -1,20 +1,14 @@
-#include <inttypes.h>
-#include <stddef.h>
-#include <stdint.h>
-
-// For generate random sleep interval
-#include <stdio.h>
-#include <stdlib.h>
-#include <time.h>
-
 #include <zephyr/device.h>
 #include <zephyr/devicetree.h>
 #include <zephyr/kernel.h>
 #include <zephyr/sys/printk.h>
 #include <zephyr/sys/util.h>
 #include <zephyr/drivers/gpio.h>
-
 #include <zephyr/sys/reboot.h>
+
+#include <inttypes.h>
+#include <stddef.h>
+#include <stdint.h>
 
 // Declare header files
 #include "enable_print.h"
@@ -33,13 +27,11 @@
 
 LOG_MODULE_REGISTER(main);
 
-// K_SEM_DEFINE(my_semaphore_vcap, 1, 1);    // prevent a lot of threads from reading Vcap at the same time
-
 uint8_t waterLevel_tx_len;
 uint16_t waterLevel_tx_buf[2];
 uint16_t waterlevel_tx;
 
-int8_t    ret;
+int8_t ret;
 //----------------------------------------------------------------------------------------
 // ++++++++++++++++++++++ S- UART THREAD ++++++++++++++++++++++++
 //----------------------------------------------------------------------------------------
@@ -49,8 +41,6 @@ int8_t    ret;
 K_THREAD_DEFINE(thread_uartprocess_id, UART_STACKSIZE, thread_uartprocess, NULL, NULL, NULL,
 	THREAD_UARTPROCESS_PRIORITY, 0, 0);
 // -------------------------------------- E- UART THREAD ---------------------------------
-
-
 
 
 //----------------------------------------------------------------------------------------
@@ -86,7 +76,6 @@ int main(void)
 	// setup_uart();      // Suspend UART2
 
 
-
   // Wake RoadRunner up
   ret = runner_wakeup_int();
   if(ret){
@@ -94,7 +83,6 @@ int main(void)
       LOG_INF("RR wakeup - Fail to retrieving GPIO waking RoadRunner up");
 		exit(1);
 	}
-
 
 
   // Open circuit
@@ -113,8 +101,6 @@ int main(void)
   turn_off_div_sw3();	     // Disable Vpv divider to save energy during the connection time
 
   
-  
-
   // Initialize + Configurate modem
 	// modem_main_init();
   // k_sleep(K_SECONDS(1));
@@ -123,10 +109,8 @@ int main(void)
   // modem_transmitData_astar(0xFFFFu, 0xFFFFu, 0xFFFFu, 0xFFFFu);
 
 
-
-
-
   // To make sure that the RoadRunner UART is initialized before the nRF's
+  runner_set_wakeup();
   k_sleep(K_SECONDS(5));
   uart_init();
 
@@ -163,9 +147,8 @@ int main(void)
     //==========================================================================================================================#
     if ENABLE_PRINT 
       LOG_INF("Resume UART to be able to be waken up by the RR UART interrupt and receive UART data");
-    // // uart_init();
-    // setup_uart0_ENA();
-    // setup_uart2_ENA();
+    setup_uart0_ENA();
+    setup_uart2_ENA();
 
     
     //==================================================================================================================#
@@ -203,8 +186,8 @@ int main(void)
 
 
     // =======================================================================================================================#
-    // Todo: Once the UART data (waterlevel/photo) is sent to nRF - "k_sem_give(&uart_data_ready, K_FOREVER)", nRF sends      #
-    //        the UART data to the server - executed in "serial_interface.c"                                                  #  
+    // Todo: Once the UART data (waterlevel/photo) is sent to nRF - "k_sem_give(&uart_data_ready, K_FOREVER)", nRF is         # 
+    //          waken up and sends the UART data to the server - executed in "serial_interface.c"                             #  
     // =======================================================================================================================#
 
     //============================================================================================================================================#
@@ -215,7 +198,6 @@ int main(void)
     if ENABLE_PRINT
       LOG_INF("nRF sleeps until the RR finishes its ML inference, and then RR wakes nRF up by sending UART waterlevel/photo data to it ...");
     k_sem_take(&uart_process_rx_done, K_FOREVER);   // Help nRF only send AsTAR paras to the server after receiving, processing and sending UART data to the server
-
 
 
 
@@ -253,16 +235,16 @@ int main(void)
     //==============================================================================================#
     if ENABLE_PRINT
       LOG_INF("Suspend UART before sleep to save the energy during sleep interval");
-    // setup_uart2_DIS();    // Disable UART console
-    // setup_uart0_DIS();    // Disable UART console
-
-
-
-
+    setup_uart2_DIS();    // Disable UART console
+    setup_uart0_DIS();    // Disable UART console
 
     //==============================================================================================#
     // ToDo: Enter deep sleep                                                                       #
     //==============================================================================================#
+    
+    
+    
+    
     // Just for testing, please comment it out when deploying the BEAVER
     sleepTimer = 60;
 
@@ -272,7 +254,7 @@ int main(void)
 
     if ENABLE_PRINT
     {
-      LOG_INF("The nRF sleeping for %d (s)", sleepTimer);
+      LOG_INF("The nRF is sleeping for %d (s)", sleepTimer);
       LOG_INF(" ----------------------------------------------------------------------------------------------------");
     }
 
