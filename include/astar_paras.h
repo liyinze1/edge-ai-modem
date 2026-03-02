@@ -26,7 +26,7 @@ extern uint16_t  newV;
 extern uint16_t  solarV;;
 extern const uint16_t shutOffVoltage;
 extern const uint16_t   maxVoltage;
-extern uint32_t  sleepTimer;
+extern uint16_t  sleepTimer;
 extern uint16_t  reconnection_times;
 extern struct k_sem my_semaphore_vcap;      // prevent a lot of threads from reading Vcap at the same time
 

@@ -37,7 +37,7 @@ void uart_send_ready(void);
 void uart_process_rx(void);
 void uart_send_cmd_suspendRAM(void);
 void uart_send_cmd_powerdown(void);
-
+void uart_send_sleep_timer(uint16_t value);
 
 void thread_uartprocess (void);
 

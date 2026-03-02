@@ -120,6 +120,16 @@ void uart_send_cmd_powerdown(void) {
     }
 }
 
+void uart_send_sleep_timer(uint16_t value) {
+    uint8_t buffer[2];
+
+    buffer[0] = value & 0xFF;        // LSB
+    buffer[1] = (value >> 8) & 0xFF; // MSB
+
+    if (uart_tx(uart2_dev, buffer, sizeof(buffer), SYS_FOREVER_US)) {
+        LOG_ERR("UART send failed");
+    }
+}
 
 void uart_send_ack(void) {
     static const uint8_t tx_char = 'A';

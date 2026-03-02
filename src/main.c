@@ -217,18 +217,19 @@ int main(void)
       LOG_INF("Calcualted Sleep interval: %d (s)", sleepTimer);
       LOG_INF("Based on the calculated sleep interval => to send sleeping-mode command to the RR");
     }
-    if (sleepTimer < 839)
-    {
-      uart_send_cmd_suspendRAM();
-      if ENABLE_PRINT
-        LOG_INF("suspend-to RAM command <S> has sent to the RR");
-    }
-    else
-    { 
-      uart_send_cmd_powerdown();
-      if ENABLE_PRINT
-        LOG_INF("power-down command <P> has sent to the RR");
-    }
+    // if (sleepTimer < 839)
+    // {
+    //   uart_send_cmd_suspendRAM();
+    //   if ENABLE_PRINT
+    //     LOG_INF("suspend-to RAM command <S> has sent to the RR");
+    // }
+    // else
+    // { 
+    //   uart_send_cmd_powerdown();
+    //   if ENABLE_PRINT
+    //     LOG_INF("power-down command <P> has sent to the RR");
+    // }
+    uart_send_sleep_timer(sleepTimer);     // Send the sleep timer to RR, and RR will decide its sleeping mode based on the sleep timer value
 
     //==============================================================================================#
     // ToDo: Suspend UART before sleep to save the energy during sleep interval                     #

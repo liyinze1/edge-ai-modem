@@ -19,7 +19,7 @@ uint16_t sleepThreshold_Vpv  = 3800;
 uint16_t beginSleeping_Vcap = 0;            // Vcap once the node begins sleeping
 
 // In seconds
-uint32_t sleepTimer = 30;
+uint16_t sleepTimer = 30;
 const uint16_t LowVolt_SleepTime = 7200;     
 const uint32_t maxRate = 120;
 const uint32_t minRate = 7200;
