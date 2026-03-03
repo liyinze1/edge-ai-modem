@@ -204,7 +204,8 @@ int main(void)
     // Comment out for testing without Cellular network, please uncomment it when deploying the BEAVER
     // modem_transmitData_astar(newV, sleepTimer, solarV, reconnection_times);
 
-
+    //Just for testing, please comment it out when deploying the BEAVER
+    sleepTimer = 60;
 
     //==========================================================================================================================#
     // Todo: Specify RR's sleeping mode                                                                                         #
@@ -242,13 +243,6 @@ int main(void)
     //==============================================================================================#
     // ToDo: Enter deep sleep                                                                       #
     //==============================================================================================#
-    
-    
-    
-    
-    // Just for testing, please comment it out when deploying the BEAVER
-    sleepTimer = 60;
-
 
 
 
