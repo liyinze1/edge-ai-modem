@@ -35,7 +35,7 @@ int8_t ret;
 //----------------------------------------------------------------------------------------
 // ++++++++++++++++++++++ S- UART THREAD ++++++++++++++++++++++++
 //----------------------------------------------------------------------------------------
-#define UART_STACKSIZE 512
+#define UART_STACKSIZE 4096
 #define THREAD_UARTPROCESS_PRIORITY 5
 // void thread_uartprocess (void);
 K_THREAD_DEFINE(thread_uartprocess_id, UART_STACKSIZE, thread_uartprocess, NULL, NULL, NULL,
@@ -57,7 +57,7 @@ K_THREAD_DEFINE(ReConn_id, RECONN_STACK_SIZE, reconnection_thread, NULL, NULL, N
 //----------------------------------------------------------------------------------------
 //++++++++++++++++++++++ Caps Overvoltage Protection THREAD ++++++++++++++++++++++++
 //----------------------------------------------------------------------------------------
-#define OVER_V_STACK_SIZE 512
+#define OVER_V_STACK_SIZE 4096
 #define OVER_V_PRIORITY 4
 // void overV_protection_thread(void);
 K_THREAD_DEFINE(over_v_id, OVER_V_STACK_SIZE, overV_protection_thread, NULL, NULL, NULL,
