@@ -102,11 +102,11 @@ int main(void)
 
   
   // Initialize + Configurate modem
-	// modem_main_init();
-  // k_sleep(K_SECONDS(1));
+	modem_main_init();
+  k_sleep(K_SECONDS(1));
 
   // Send start up notification (discarded at server)
-  // modem_transmitData_astar(0xFFFFu, 0xFFFFu, 0xFFFFu, 0xFFFFu);
+  modem_transmitData_astar(0xFFFFu, 0xFFFFu, 0xFFFFu, 0xFFFFu);
 
 
   // To make sure that the RoadRunner UART is initialized before the nRF's
@@ -205,7 +205,7 @@ int main(void)
     // modem_transmitData_astar(newV, sleepTimer, solarV, reconnection_times);
 
     //Just for testing, please comment it out when deploying the BEAVER
-    sleepTimer = 60;
+    // sleepTimer = 60;
 
     //==========================================================================================================================#
     // Todo: Specify RR's sleeping mode                                                                                         #
